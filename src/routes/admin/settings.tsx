@@ -34,6 +34,7 @@ function SettingsPage() {
   const { user } = useRouteContext({ from: "/admin" });
 
   const { data: settings } = useQuery({
+    refetchInterval: 5000,
     queryKey: ["hospital-settings"],
     queryFn: () => getHospitalSettingsFn(),
   });

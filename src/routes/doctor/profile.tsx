@@ -13,6 +13,7 @@ export const Route = createFileRoute("/doctor/profile")({
 
 function ProfilePage() {
   const { data: doctor, isLoading } = useQuery({
+    refetchInterval: 5000,
     queryKey: ["my-profile"],
     queryFn: () => getMyProfileFn(),
   });

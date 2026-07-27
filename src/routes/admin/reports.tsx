@@ -20,6 +20,7 @@ export const Route = createFileRoute("/admin/reports")({
 
 function ReportsPage() {
   const { data, isLoading } = useQuery({
+    refetchInterval: 5000,
     queryKey: ["admin-reports"],
     queryFn: () => getAdminReportsFn(),
   });

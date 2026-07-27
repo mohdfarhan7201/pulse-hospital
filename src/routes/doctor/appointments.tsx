@@ -48,6 +48,7 @@ function MyAppointmentsPage() {
   const [statusFilter, setStatusFilter] = useState<"all" | AppointmentStatus>("all");
 
   const { data: appointments = [], isLoading } = useQuery({
+    refetchInterval: 5000,
     queryKey: ["my-appointments"],
     queryFn: () => listMyAppointmentsFn(),
   });

@@ -27,6 +27,7 @@ const rupee = new Intl.NumberFormat("en-IN", {
 
 function BillingPage() {
   const { data, isLoading } = useQuery({
+    refetchInterval: 5000,
     queryKey: ["billing"],
     queryFn: () => getBillingFn(),
   });

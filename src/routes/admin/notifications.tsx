@@ -22,6 +22,7 @@ function AdminNotificationsPage() {
   const [filter, setFilter] = useState<"all" | "unread">("all");
 
   const { data: notifications = [], isLoading } = useQuery({
+    refetchInterval: 5000,
     queryKey: ["admin-notifications"],
     queryFn: () => listAdminNotificationsFn(),
   });

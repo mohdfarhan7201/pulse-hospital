@@ -298,6 +298,7 @@ function DoctorsPage() {
   const [search, setSearch] = useState("");
 
   const { data: doctors, isLoading } = useQuery({
+    refetchInterval: 5000,
     queryKey: ["doctors"],
     queryFn: () => listDoctorsFn(),
   });

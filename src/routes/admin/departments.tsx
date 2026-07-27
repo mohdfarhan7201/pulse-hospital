@@ -11,6 +11,7 @@ export const Route = createFileRoute("/admin/departments")({
 
 function DepartmentsPage() {
   const { data: departments, isLoading } = useQuery({
+    refetchInterval: 5000,
     queryKey: ["departments"],
     queryFn: () => listDepartmentsFn(),
   });

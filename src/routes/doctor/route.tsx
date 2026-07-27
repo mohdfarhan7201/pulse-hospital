@@ -69,6 +69,7 @@ function DoctorLayout() {
   const pageTitle = TITLES[location.pathname] ?? "Doctor Dashboard";
 
   const { data: notifications = [] } = useQuery({
+    refetchInterval: 5000,
     queryKey: ["my-notifications"],
     queryFn: () => listMyNotificationsFn(),
   });

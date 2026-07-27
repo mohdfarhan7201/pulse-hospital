@@ -11,6 +11,7 @@ export const Route = createFileRoute("/doctor/schedule")({
 
 function SchedulePage() {
   const { data, isLoading } = useQuery({
+    refetchInterval: 5000,
     queryKey: ["my-schedule"],
     queryFn: () => getMyScheduleFn(),
   });

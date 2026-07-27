@@ -24,6 +24,7 @@ function PatientsPage() {
   const [search, setSearch] = useState("");
 
   const { data: patients, isLoading } = useQuery({
+    refetchInterval: 5000,
     queryKey: ["patients"],
     queryFn: () => listPatientsFn(),
   });

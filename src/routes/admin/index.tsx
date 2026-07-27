@@ -35,6 +35,7 @@ const DEPT_COLORS = ["#7c3aed", "#0891b2", "#f59e0b", "#e11d48", "#94a3b8"];
 
 function AdminOverviewPage() {
   const { data, isLoading } = useQuery({
+    refetchInterval: 5000,
     queryKey: ["admin-overview"],
     queryFn: () => getAdminOverviewFn(),
   });

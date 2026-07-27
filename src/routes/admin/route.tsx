@@ -70,6 +70,7 @@ function AdminLayout() {
   const pageTitle = TITLES[location.pathname] ?? "Admin Dashboard";
 
   const { data: notifications = [] } = useQuery({
+    refetchInterval: 5000,
     queryKey: ["admin-notifications"],
     queryFn: () => listAdminNotificationsFn(),
   });

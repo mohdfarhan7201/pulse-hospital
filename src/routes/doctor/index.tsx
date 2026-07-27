@@ -15,6 +15,7 @@ export const Route = createFileRoute("/doctor/")({
 function DoctorOverviewPage() {
   const { user } = useRouteContext({ from: "/doctor" });
   const { data, isLoading } = useQuery({
+    refetchInterval: 5000,
     queryKey: ["doctor-overview"],
     queryFn: () => getDoctorOverviewFn(),
   });

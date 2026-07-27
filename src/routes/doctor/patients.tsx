@@ -19,6 +19,7 @@ export const Route = createFileRoute("/doctor/patients")({
 
 function MyPatientsPage() {
   const { data: patients, isLoading } = useQuery({
+    refetchInterval: 5000,
     queryKey: ["my-patients"],
     queryFn: () => listMyPatientsFn(),
   });

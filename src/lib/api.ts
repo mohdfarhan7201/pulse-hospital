@@ -50,7 +50,7 @@ function lastNDaysLabelsAndDates(n: number) {
 
 export const getAdminOverviewFn = createServerFn({ method: "GET" }).handler(async () => {
   await requireAdmin();
-  const db = getDb();
+  const db = await getDb();
   const today = new Date().toISOString().slice(0, 10);
 
   const todaysAppointments = db.appointments.filter((a) => a.date === today);
@@ -101,7 +101,7 @@ export const getAdminOverviewFn = createServerFn({ method: "GET" }).handler(asyn
 
 export const listDoctorsFn = createServerFn({ method: "GET" }).handler(async () => {
   await requireAdmin();
-  const db = getDb();
+  const db = await getDb();
   return db.doctors.map((d) => ({
     ...d,
     patientCount: db.patients.filter((p) => p.primaryDoctorId === d.id).length,
@@ -110,7 +110,7 @@ export const listDoctorsFn = createServerFn({ method: "GET" }).handler(async () 
 
 /** Public — no auth required. Used by the landing page /#doctors section. */
 export const listPublicDoctorsFn = createServerFn({ method: "GET" }).handler(async () => {
-  const db = getDb();
+  const db = await getDb();
   return db.doctors
     .filter((d) => d.status === "Active")
     .map((d) => ({
@@ -141,7 +141,7 @@ export const createPublicAppointmentFn = createServerFn({ method: "POST" })
     }) => data,
   )
   .handler(async ({ data }) => {
-    const db = getDb();
+    const db = await getDb();
 
     const doctor = db.doctors.find((d) => d.id === data.doctorId);
     const doctorName = doctor ? doctor.name : "Unassigned";
@@ -213,7 +213,7 @@ export const createPublicAppointmentFn = createServerFn({ method: "POST" })
       });
     }
 
-    saveDb();
+    await saveDb();
     return { success: true, appointmentId: apptId, appointment };
   });
 
@@ -233,7 +233,7 @@ export const createDoctorFn = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     await requireAdmin();
-    const db = getDb();
+    const db = await getDb();
 
     if (!data.password || !data.password.trim()) {
       throw new Error("Password is required to create a doctor login account.");
@@ -273,7 +273,7 @@ export const createDoctorFn = createServerFn({ method: "POST" })
       avatarInitials: getAvatarInitials(doctor.name),
     });
 
-    saveDb();
+    await saveDb();
     return doctor;
   });
 
@@ -281,7 +281,7 @@ export const deleteDoctorFn = createServerFn({ method: "POST" })
   .validator((data: { id: string }) => data)
   .handler(async ({ data }) => {
     await requireAdmin();
-    const db = getDb();
+    const db = await getDb();
     const doc = db.doctors.find((d) => d.id === data.id);
     const docEmail = doc?.email.toLowerCase();
 
@@ -289,7 +289,7 @@ export const deleteDoctorFn = createServerFn({ method: "POST" })
     db.users = db.users.filter(
       (u) => u.doctorId !== data.id && (!docEmail || u.email.toLowerCase() !== docEmail)
     );
-    saveDb();
+    await saveDb();
     return { ok: true };
   });
 
@@ -311,7 +311,7 @@ export const updateDoctorFn = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     await requireAdmin();
-    const db = getDb();
+    const db = await getDb();
     const doc = db.doctors.find((d) => d.id === data.id);
     if (!doc) throw new Error("Doctor not found");
 
@@ -349,13 +349,13 @@ export const updateDoctorFn = createServerFn({ method: "POST" })
       });
     }
 
-    saveDb();
+    await saveDb();
     return doc;
   });
 
 export const listPatientsFn = createServerFn({ method: "GET" }).handler(async () => {
   await requireAdmin();
-  const db = getDb();
+  const db = await getDb();
   return db.patients.map((p) => ({
     ...p,
     doctorName: db.doctors.find((d) => d.id === p.primaryDoctorId)?.name ?? "Unassigned",
@@ -364,7 +364,7 @@ export const listPatientsFn = createServerFn({ method: "GET" }).handler(async ()
 
 export const listDepartmentsFn = createServerFn({ method: "GET" }).handler(async () => {
   await requireAdmin();
-  const db = getDb();
+  const db = await getDb();
   const names = [...new Set(db.doctors.map((d) => d.department))];
   return names.map((name) => ({
     name,
@@ -375,24 +375,24 @@ export const listDepartmentsFn = createServerFn({ method: "GET" }).handler(async
 
 export const listAllAppointmentsFn = createServerFn({ method: "GET" }).handler(async () => {
   await requireAdmin();
-  const db = getDb();
+  const db = await getDb();
   return [...db.appointments].sort((a, b) => (a.date < b.date ? 1 : -1));
 });
 
 export const updateAppointmentStatusFn = createServerFn({ method: "POST" })
   .validator((data: { id: string; status: AppointmentStatus }) => data)
   .handler(async ({ data }) => {
-    const db = getDb();
+    const db = await getDb();
     const appt = db.appointments.find((a) => a.id === data.id);
     if (!appt) throw new Error("Appointment not found");
     appt.status = data.status;
-    saveDb();
+    await saveDb();
     return appt;
   });
 
 export const getBillingFn = createServerFn({ method: "GET" }).handler(async () => {
   await requireAdmin();
-  const db = getDb();
+  const db = await getDb();
   const invoices = [...db.invoices].sort((a, b) => (a.date < b.date ? 1 : -1));
   const totalPaid = invoices.filter((i) => i.status === "Paid").reduce((s, i) => s + i.amount, 0);
   const totalPending = invoices
@@ -403,7 +403,7 @@ export const getBillingFn = createServerFn({ method: "GET" }).handler(async () =
 
 export const getAdminReportsFn = createServerFn({ method: "GET" }).handler(async () => {
   await requireAdmin();
-  const db = getDb();
+  const db = await getDb();
   const statusCounts: Record<string, number> = {};
   for (const a of db.appointments) {
     statusCounts[a.status] = (statusCounts[a.status] ?? 0) + 1;
@@ -432,7 +432,7 @@ export const getAdminReportsFn = createServerFn({ method: "GET" }).handler(async
 
 export const getDoctorOverviewFn = createServerFn({ method: "GET" }).handler(async () => {
   const user = await requireDoctor();
-  const db = getDb();
+  const db = await getDb();
   const today = new Date().toISOString().slice(0, 10);
   const doctorId = user.doctorId!;
 
@@ -477,7 +477,7 @@ export const getDoctorOverviewFn = createServerFn({ method: "GET" }).handler(asy
 
 export const listMyAppointmentsFn = createServerFn({ method: "GET" }).handler(async () => {
   const user = await requireDoctor();
-  const db = getDb();
+  const db = await getDb();
   return [...db.appointments]
     .filter((a) => a.doctorId === user.doctorId)
     .sort((a, b) => (a.date < b.date ? 1 : -1));
@@ -486,7 +486,7 @@ export const listMyAppointmentsFn = createServerFn({ method: "GET" }).handler(as
 export const lookupAppointmentStatusFn = createServerFn({ method: "POST" })
   .validator((query: string) => query)
   .handler(async ({ data: query }) => {
-    const db = getDb();
+    const db = await getDb();
     const cleanQuery = query.trim().toLowerCase();
     const cleanDigits = query.replace(/\D/g, "");
 
@@ -528,7 +528,7 @@ export const lookupAppointmentStatusFn = createServerFn({ method: "POST" })
 
 export const listMyPatientsFn = createServerFn({ method: "GET" }).handler(async () => {
   const user = await requireDoctor();
-  const db = getDb();
+  const db = await getDb();
   return db.patients.filter((p) => p.primaryDoctorId === user.doctorId);
 });
 
@@ -549,7 +549,7 @@ export const getMyScheduleFn = createServerFn({ method: "GET" }).handler(async (
 
 export const getMyReportsFn = createServerFn({ method: "GET" }).handler(async () => {
   const user = await requireDoctor();
-  const db = getDb();
+  const db = await getDb();
   const mine = db.appointments.filter((a) => a.doctorId === user.doctorId);
   const statusCounts: Record<string, number> = {};
   for (const a of mine) statusCounts[a.status] = (statusCounts[a.status] ?? 0) + 1;
@@ -562,7 +562,7 @@ export const getMyReportsFn = createServerFn({ method: "GET" }).handler(async ()
 
 export const listMyNotificationsFn = createServerFn({ method: "GET" }).handler(async () => {
   const user = await requireDoctor();
-  const db = getDb();
+  const db = await getDb();
   return db.notifications
     .filter((n) => n.audience === user.doctorId)
     .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
@@ -570,7 +570,7 @@ export const listMyNotificationsFn = createServerFn({ method: "GET" }).handler(a
 
 export const getMyProfileFn = createServerFn({ method: "GET" }).handler(async () => {
   const user = await requireDoctor();
-  const db = getDb();
+  const db = await getDb();
   const doctor = db.doctors.find((d) => d.id === user.doctorId);
   if (!doctor) throw new Error("Doctor profile not found");
   return {
@@ -583,7 +583,7 @@ export const getMyProfileFn = createServerFn({ method: "GET" }).handler(async ()
 
 export const listAdminNotificationsFn = createServerFn({ method: "GET" }).handler(async () => {
   await requireAdmin();
-  const db = getDb();
+  const db = await getDb();
   return db.notifications
     .filter((n) => n.audience === "admin")
     .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
@@ -592,41 +592,41 @@ export const listAdminNotificationsFn = createServerFn({ method: "GET" }).handle
 export const markNotificationReadFn = createServerFn({ method: "POST" })
   .validator((id: string) => id)
   .handler(async ({ data: id }) => {
-    const db = getDb();
+    const db = await getDb();
     const notif = db.notifications.find((n) => n.id === id);
     if (notif) {
       notif.read = true;
-      saveDb();
+      await saveDb();
     }
     return { success: true, readId: id };
   });
 
 export const markAllAdminNotificationsReadFn = createServerFn({ method: "POST" }).handler(async () => {
   await requireAdmin();
-  const db = getDb();
+  const db = await getDb();
   db.notifications.forEach((n) => {
     if (n.audience === "admin") {
       n.read = true;
     }
   });
-  saveDb();
+  await saveDb();
   return { success: true };
 });
 
 export const markAllDoctorNotificationsReadFn = createServerFn({ method: "POST" }).handler(async () => {
   const user = await requireDoctor();
-  const db = getDb();
+  const db = await getDb();
   db.notifications.forEach((n) => {
     if (n.audience === user.doctorId) {
       n.read = true;
     }
   });
-  saveDb();
+  await saveDb();
   return { success: true };
 });
 
 export const getHospitalSettingsFn = createServerFn({ method: "GET" }).handler(async () => {
-  const db = getDb();
+  const db = await getDb();
   return (
     db.settings ?? {
       hospitalName: "Pulse Heart Centre",
@@ -660,7 +660,7 @@ export const updateHospitalSettingsFn = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     await requireAdmin();
-    const db = getDb();
+    const db = await getDb();
     db.settings = {
       hospitalName: data.hospitalName !== undefined ? data.hospitalName : (db.settings?.hospitalName ?? "Pulse Heart Centre"),
       tagline: data.tagline !== undefined ? data.tagline : (db.settings?.tagline ?? ""),
@@ -673,7 +673,7 @@ export const updateHospitalSettingsFn = createServerFn({ method: "POST" })
       upiId: data.upiId !== undefined ? data.upiId : (db.settings?.upiId ?? "pulseheartcentre@upi"),
       upiName: data.upiName !== undefined ? data.upiName : (db.settings?.upiName ?? "Pulse Heart Centre"),
     };
-    saveDb();
+    await saveDb();
     return { success: true, settings: db.settings };
   });
 

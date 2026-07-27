@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { deleteCookie, getCookie, setCookie } from "@tanstack/react-start/server";
 import { randomUUID } from "node:crypto";
 
-import { getDb, saveDb, verifyPassword, type Role } from "./server/db";
+import { getDb, saveDb, verifyPassword, type Role, type UserRecord } from "./server/db";
 
 const SESSION_COOKIE = "pulse_session";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
@@ -16,7 +16,7 @@ export interface PublicUser {
   avatarInitials: string;
 }
 
-function toPublicUser(user: ReturnType<typeof getDb>["users"][number]): PublicUser {
+function toPublicUser(user: UserRecord): PublicUser {
   return {
     id: user.id,
     name: user.name,
@@ -30,7 +30,7 @@ function toPublicUser(user: ReturnType<typeof getDb>["users"][number]): PublicUs
 export const loginFn = createServerFn({ method: "POST" })
   .validator((data: { email: string; password: string; role: Role }) => data)
   .handler(async ({ data }) => {
-    const db = getDb();
+    const db = await getDb();
     const email = data.email.trim().toLowerCase();
     const user = db.users.find((u) => u.email.toLowerCase() === email && u.role === data.role);
 
@@ -45,7 +45,7 @@ export const loginFn = createServerFn({ method: "POST" })
       createdAt: now.toISOString(),
       expiresAt: new Date(now.getTime() + SESSION_TTL_MS).toISOString(),
     };
-    saveDb();
+    await saveDb();
 
     setCookie(SESSION_COOKIE, sessionId, {
       httpOnly: true,
@@ -60,9 +60,9 @@ export const loginFn = createServerFn({ method: "POST" })
 export const logoutFn = createServerFn({ method: "POST" }).handler(async () => {
   const sessionId = getCookie(SESSION_COOKIE);
   if (sessionId) {
-    const db = getDb();
+    const db = await getDb();
     delete db.sessions[sessionId];
-    saveDb();
+    await saveDb();
   }
   deleteCookie(SESSION_COOKIE, { path: "/" });
   return { ok: true };
@@ -72,13 +72,13 @@ export const getSessionFn = createServerFn({ method: "GET" }).handler(async () =
   const sessionId = getCookie(SESSION_COOKIE);
   if (!sessionId) return { user: null as PublicUser | null };
 
-  const db = getDb();
+  const db = await getDb();
   const session = db.sessions[sessionId];
   if (!session) return { user: null as PublicUser | null };
 
   if (new Date(session.expiresAt).getTime() < Date.now()) {
     delete db.sessions[sessionId];
-    saveDb();
+    await saveDb();
     return { user: null as PublicUser | null };
   }
 

@@ -738,9 +738,11 @@ async function loadCacheFromMongo() {
   }
 }
 
-function load(): DbShape {
+async function load(): Promise<DbShape> {
   if (!isMongoConnected && !isMongoConnecting) {
-    syncMongoDb().catch(() => {});
+    try {
+      await syncMongoDb();
+    } catch {}
   }
   if (cache) return cache;
   try {
@@ -753,11 +755,11 @@ function load(): DbShape {
     // fall through if read error
   }
   cache = seedDb();
-  persist();
+  await persist();
   return cache;
 }
 
-function persist() {
+async function persist() {
   if (!cache) return;
   try {
     const dir = dirname(DB_PATH);
@@ -768,12 +770,14 @@ function persist() {
     // keep working off the in-memory cache for the life of the process.
   }
   if (isMongoConnected) {
-    saveCacheToMongo().catch(() => {});
+    try {
+      await saveCacheToMongo();
+    } catch {}
   }
 }
 
-export function getDb(): DbShape {
-  const db = load();
+export async function getDb(): Promise<DbShape> {
+  const db = await load();
   if (!db.settings) {
     db.settings = {
       hospitalName: "Pulse Heart Centre",
@@ -791,8 +795,8 @@ export function getDb(): DbShape {
   return db;
 }
 
-export function saveDb() {
-  persist();
+export async function saveDb() {
+  await persist();
 }
 
 export function newId(prefix: string) {

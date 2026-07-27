@@ -77,19 +77,19 @@ export function Navbar() {
           <div className="hidden items-center gap-2 lg:flex">
             <a
               href={`tel:${helplinePhone.replace(/\s+/g, "")}`}
-              className="btn-lux inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-white/90 hover:bg-white/10"
+              className="btn-lux inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-white/90 hover:bg-white/10 whitespace-nowrap"
             >
-              <Phone className="h-4 w-4" /> {helplinePhone}
+              <Phone className="h-4 w-4 shrink-0" /> {helplinePhone}
             </a>
             <Link
               to="/login"
-              className="btn-lux inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-white/90 hover:bg-white/10"
+              className="btn-lux inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-white/90 hover:bg-white/10 whitespace-nowrap"
             >
-              <LogIn className="h-4 w-4" /> Login
+              <LogIn className="h-4 w-4 shrink-0" /> Login
             </Link>
             <AppointmentModal>
               <button
-                className="btn-lux inline-flex items-center gap-2 rounded-full bg-white px-5 py-2 text-sm font-semibold text-[oklch(0.18_0.05_265)] shadow-glow hover:bg-white/90"
+                className="btn-lux inline-flex items-center gap-2 rounded-full bg-white px-5 py-2 text-sm font-semibold text-[oklch(0.18_0.05_265)] shadow-glow hover:bg-white/90 whitespace-nowrap"
               >
                 Book Appointment
               </button>

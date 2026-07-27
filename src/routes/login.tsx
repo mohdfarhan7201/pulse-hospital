@@ -14,21 +14,7 @@ export const Route = createFileRoute("/login")({
     meta: [{ title: "Sign in · Pulse Heart Centre" }],
   }),
   beforeLoad: async () => {
-    let user = null;
-    try {
-      const res = await getSessionFn();
-      user = res.user;
-    } catch {
-      // serverless fallback
-    }
-    if (!user && typeof window !== "undefined") {
-      try {
-        const stored = localStorage.getItem("pulse_auth_user");
-        if (stored) user = JSON.parse(stored);
-      } catch {
-        // ignore
-      }
-    }
+    const { user } = await getSessionFn();
     return { currentUser: user };
   },
   component: LoginPage,
@@ -61,9 +47,6 @@ function LoginPage() {
     setLoading(true);
     try {
       const { user } = await loginFn({ data: { email, password, role } });
-      if (typeof window !== "undefined") {
-        localStorage.setItem("pulse_auth_user", JSON.stringify(user));
-      }
       await navigate({ to: user.role === "admin" ? "/admin" : "/doctor" });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");

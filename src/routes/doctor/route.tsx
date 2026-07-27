@@ -33,7 +33,28 @@ const TITLES: Record<string, string> = {
 
 export const Route = createFileRoute("/doctor")({
   beforeLoad: async () => {
-    const { user } = await getSessionFn();
+    let user = null;
+    try {
+      const res = await getSessionFn();
+      user = res.user;
+    } catch {
+      // serverless fallback
+    }
+
+    if (!user && typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("pulse_auth_user");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && parsed.role === "doctor") {
+            user = parsed;
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+
     if (!user || user.role !== "doctor") {
       throw redirect({ to: "/login" });
     }

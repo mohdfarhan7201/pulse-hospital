@@ -34,7 +34,28 @@ const TITLES: Record<string, string> = {
 
 export const Route = createFileRoute("/admin")({
   beforeLoad: async () => {
-    const { user } = await getSessionFn();
+    let user = null;
+    try {
+      const res = await getSessionFn();
+      user = res.user;
+    } catch {
+      // serverless fallback
+    }
+
+    if (!user && typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("pulse_auth_user");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && parsed.role === "admin") {
+            user = parsed;
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+
     if (!user || user.role !== "admin") {
       throw redirect({ to: "/login" });
     }

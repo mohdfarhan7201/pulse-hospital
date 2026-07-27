@@ -594,7 +594,7 @@ export async function syncMongoDb() {
       await loadCacheFromMongo();
     }
   } catch (err: any) {
-    console.log(`[MongoDB] Connection notice (localhost:27017): ${err.message || err}`);
+    console.error(`[MongoDB] Connection failed: ${err.message || err}`);
   } finally {
     isMongoConnecting = false;
   }

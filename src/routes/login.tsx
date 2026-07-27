@@ -47,6 +47,9 @@ function LoginPage() {
     setLoading(true);
     try {
       const { user } = await loginFn({ data: { email, password, role } });
+      if (typeof window !== "undefined") {
+        localStorage.setItem("pulse_user", JSON.stringify(user));
+      }
       await navigate({ to: user.role === "admin" ? "/admin" : "/doctor" });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");

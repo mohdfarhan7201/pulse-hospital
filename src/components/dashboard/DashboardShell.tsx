@@ -41,6 +41,9 @@ export function DashboardShell({
   const navigate = useNavigate();
 
   const handleLogout = async () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("pulse_user");
+    }
     await logoutFn();
     await navigate({ to: "/login" });
   };

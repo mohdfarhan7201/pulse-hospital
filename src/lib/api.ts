@@ -662,16 +662,16 @@ export const updateHospitalSettingsFn = createServerFn({ method: "POST" })
     await requireAdmin();
     const db = getDb();
     db.settings = {
-      hospitalName: data.hospitalName ?? db.settings?.hospitalName ?? "Pulse Heart Centre",
-      tagline: data.tagline ?? db.settings?.tagline ?? "Advanced Cardiac Care",
-      contactEmail: data.contactEmail ?? db.settings?.contactEmail ?? "info@pulseheartcentre.com",
-      helplinePhone: data.helplinePhone ?? db.settings?.helplinePhone ?? "+91 98765 43210",
-      address: data.address ?? db.settings?.address ?? "Gorakhpur",
-      opdHours: data.opdHours ?? db.settings?.opdHours ?? "Mon - Sat: 8:00 AM - 8:00 PM",
+      hospitalName: data.hospitalName !== undefined ? data.hospitalName : (db.settings?.hospitalName ?? "Pulse Heart Centre"),
+      tagline: data.tagline !== undefined ? data.tagline : (db.settings?.tagline ?? ""),
+      contactEmail: data.contactEmail !== undefined ? data.contactEmail : (db.settings?.contactEmail ?? ""),
+      helplinePhone: data.helplinePhone !== undefined ? data.helplinePhone : (db.settings?.helplinePhone ?? ""),
+      address: data.address !== undefined ? data.address : (db.settings?.address ?? ""),
+      opdHours: data.opdHours !== undefined ? data.opdHours : (db.settings?.opdHours ?? ""),
       normalFee: data.normalFee !== undefined ? Number(data.normalFee) : (db.settings?.normalFee ?? 500),
       emergencyFee: data.emergencyFee !== undefined ? Number(data.emergencyFee) : (db.settings?.emergencyFee ?? 1000),
-      upiId: data.upiId ?? db.settings?.upiId ?? "pulseheartcentre@upi",
-      upiName: data.upiName ?? db.settings?.upiName ?? "Pulse Heart Centre",
+      upiId: data.upiId !== undefined ? data.upiId : (db.settings?.upiId ?? "pulseheartcentre@upi"),
+      upiName: data.upiName !== undefined ? data.upiName : (db.settings?.upiName ?? "Pulse Heart Centre"),
     };
     saveDb();
     return { success: true, settings: db.settings };

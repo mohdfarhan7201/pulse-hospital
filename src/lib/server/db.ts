@@ -742,6 +742,7 @@ function load(): DbShape {
   if (!isMongoConnected && !isMongoConnecting) {
     syncMongoDb().catch(() => {});
   }
+  if (cache) return cache;
   try {
     if (existsSync(DB_PATH)) {
       const raw = readFileSync(DB_PATH, "utf-8");
@@ -751,7 +752,6 @@ function load(): DbShape {
   } catch {
     // fall through if read error
   }
-  if (cache) return cache;
   cache = seedDb();
   persist();
   return cache;

@@ -8,6 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+/node_modules
 dist
 dist-ssr
 .output
@@ -31,3 +32,7 @@ dist-ssr
 *.sln
 *.sw?
 data/pulse-db.json
+
+# misc
+*.pem
+*.tsbuildinfo

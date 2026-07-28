@@ -135,7 +135,9 @@ export const createPublicAppointmentFn = createServerFn({ method: "POST" })
       doctorId: string;
       date: string;
       time?: string;
-      reason?: string;
+      address: string;
+      state: string;
+      country: string;
       age?: number;
       gender?: "Male" | "Female" | "Other";
     }) => data,
@@ -183,7 +185,9 @@ export const createPublicAppointmentFn = createServerFn({ method: "POST" })
       date: data.date,
       time: data.time?.trim() || "10:00 AM",
       status: "Pending",
-      reason: data.reason?.trim() || "General Consultation",
+      address: data.address,
+      state: data.state,
+      country: data.country,
       createdAt: new Date().toISOString().slice(0, 10),
     };
     db.appointments.push(appointment);

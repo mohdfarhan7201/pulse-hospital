@@ -59,7 +59,7 @@ function AppointmentsPage() {
       a.patientName.toLowerCase().includes(q) ||
       a.doctorName.toLowerCase().includes(q) ||
       a.department.toLowerCase().includes(q) ||
-      a.reason.toLowerCase().includes(q);
+      a.address.toLowerCase().includes(q) || a.state.toLowerCase().includes(q);
     const matchesStatus = statusFilter === "all" || a.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -90,7 +90,7 @@ function AppointmentsPage() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
             <Input
               id="appointment-search"
-              placeholder="Search by patient, doctor, department or reason…"
+              placeholder="Search by patient, doctor, department or address…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
@@ -121,7 +121,7 @@ function AppointmentsPage() {
               <TableHead>Doctor</TableHead>
               <TableHead>Department</TableHead>
               <TableHead>Date &amp; Time</TableHead>
-              <TableHead>Reason</TableHead>
+              <TableHead>Location / Address</TableHead>
               <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
@@ -153,7 +153,7 @@ function AppointmentsPage() {
                 <TableCell className="text-muted-foreground">
                   {a.date}, {a.time}
                 </TableCell>
-                <TableCell className="text-muted-foreground">{a.reason}</TableCell>
+                <TableCell className="text-muted-foreground"><div className="truncate max-w-[200px]" title={`${a.address}, ${a.state}, ${a.country}`}>{a.address}, {a.state}, {a.country}</div></TableCell>
                 <TableCell>
                   <Select
                     value={a.status}

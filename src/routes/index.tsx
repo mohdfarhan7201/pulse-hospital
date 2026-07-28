@@ -45,6 +45,7 @@ import doc1 from "@/assets/doctor-1.jpg";
 import doc2 from "@/assets/doctor-2.jpg";
 import doc3 from "@/assets/doctor-3.jpg";
 import cathlab from "@/assets/cathlab.jpg";
+import about from "@/assets/About.jpg";
 import icu from "@/assets/icu.jpg";
 import ot from "@/assets/ot.jpg";
 
@@ -434,7 +435,7 @@ function About() {
           <div className="relative">
             <div className="absolute -inset-6 -z-10 rounded-[2.2rem] bg-gradient-to-br from-[oklch(0.62_0.15_210_/0.2)] via-transparent to-[oklch(0.55_0.22_20_/0.15)] blur-2xl" />
             <div className="overflow-hidden rounded-[2rem] shadow-luxe">
-              <img src={cathlab} alt="Cath lab" width={1400} height={1000} loading="lazy" className="h-full w-full object-cover" />
+              <img src={about} alt="Cath lab" width={1400} height={1000} loading="lazy" className="h-full w-full object-cover" />
             </div>
             <div className="absolute -bottom-8 -left-6 hidden w-64 rounded-2xl border border-border bg-white/90 p-5 shadow-luxe backdrop-blur sm:block">
               <div className="flex items-center gap-3">
@@ -1137,7 +1138,10 @@ function Appointment() {
     const gender = ((formData.get("gender") as string) || "Male") as "Male" | "Female" | "Other";
     const age = parseInt(ageStr, 10) || 30;
     const date = (formData.get("date") as string) || new Date().toISOString().slice(0, 10);
-    const notes = (formData.get("notes") as string) || "General Consultation";
+    const address = (formData.get("address") as string) || "";
+    const state = (formData.get("state") as string) || "Uttar Pradesh";
+    const country = (formData.get("country") as string) || "India";
+    const type = (formData.get("type") as string) || "normal";
 
     const doctor = publicDoctors.find((d) => d.id === selectedDoctorId);
 
@@ -1153,7 +1157,10 @@ function Appointment() {
           doctorId: selectedDoctorId || doctor?.id || "",
           date,
           time: "10:00 AM",
-          reason: notes,
+          address,
+          state,
+          country,
+          type,
         },
       });
 
@@ -1290,10 +1297,88 @@ function Appointment() {
                 </div>
 
                 <Input label="Preferred date" name="date" type="date" defaultValue={new Date().toISOString().slice(0, 10)} required className="sm:col-span-2" />
-                <div className="sm:col-span-2">
-                  <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-muted-foreground">Notes / Symptoms</label>
-                  <textarea name="notes" rows={3} placeholder="Briefly describe your health condition or symptoms…" className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none focus:border-ring" />
+                
+                <div className="col-span-1">
+                  <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-muted-foreground">Type</label>
+                  <select
+                    name="type"
+                    required
+                    defaultValue="normal"
+                    className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none focus:border-ring"
+                  >
+                    <option value="normal">Normal</option>
+                    <option value="emergency">Emergency</option>
+                  </select>
                 </div>
+                
+                <div className="col-span-1">
+                  <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-muted-foreground">State</label>
+                  <select
+                    name="state"
+                    required
+                    defaultValue="Uttar Pradesh"
+                    className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none focus:border-ring"
+                  >
+                    <option value="Andaman and Nicobar Islands">Andaman and Nicobar Islands</option>
+                    <option value="Andhra Pradesh">Andhra Pradesh</option>
+                    <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                    <option value="Assam">Assam</option>
+                    <option value="Bihar">Bihar</option>
+                    <option value="Chandigarh">Chandigarh</option>
+                    <option value="Chhattisgarh">Chhattisgarh</option>
+                    <option value="Dadra and Nagar Haveli">Dadra and Nagar Haveli</option>
+                    <option value="Daman and Diu">Daman and Diu</option>
+                    <option value="Delhi">Delhi</option>
+                    <option value="Goa">Goa</option>
+                    <option value="Gujarat">Gujarat</option>
+                    <option value="Haryana">Haryana</option>
+                    <option value="Himachal Pradesh">Himachal Pradesh</option>
+                    <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                    <option value="Jharkhand">Jharkhand</option>
+                    <option value="Karnataka">Karnataka</option>
+                    <option value="Kerala">Kerala</option>
+                    <option value="Ladakh">Ladakh</option>
+                    <option value="Lakshadweep">Lakshadweep</option>
+                    <option value="Madhya Pradesh">Madhya Pradesh</option>
+                    <option value="Maharashtra">Maharashtra</option>
+                    <option value="Manipur">Manipur</option>
+                    <option value="Meghalaya">Meghalaya</option>
+                    <option value="Mizoram">Mizoram</option>
+                    <option value="Nagaland">Nagaland</option>
+                    <option value="Odisha">Odisha</option>
+                    <option value="Puducherry">Puducherry</option>
+                    <option value="Punjab">Punjab</option>
+                    <option value="Rajasthan">Rajasthan</option>
+                    <option value="Sikkim">Sikkim</option>
+                    <option value="Tamil Nadu">Tamil Nadu</option>
+                    <option value="Telangana">Telangana</option>
+                    <option value="Tripura">Tripura</option>
+                    <option value="Uttar Pradesh">Uttar Pradesh</option>
+                    <option value="Uttarakhand">Uttarakhand</option>
+                    <option value="West Bengal">West Bengal</option>
+                  </select>
+                </div>
+                
+                <div className="col-span-1">
+                  <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-muted-foreground">Country</label>
+                  <select
+                    name="country"
+                    required
+                    defaultValue="India"
+                    className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none focus:border-ring"
+                  >
+                    <option value="India">India</option>
+                    <option value="Nepal">Nepal</option>
+                    <option value="Bangladesh">Bangladesh</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-muted-foreground">Address</label>
+                  <textarea name="address" rows={2} required placeholder="Full Address..." className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none focus:border-ring" />
+                </div>
+
               </div>
               <button
                 type="submit"

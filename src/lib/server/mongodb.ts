@@ -110,7 +110,9 @@ const AppointmentSchema = new mongoose.Schema({
   date: { type: String, required: true },
   time: { type: String, required: true },
   status: { type: String, required: true },
-  reason: { type: String, required: true },
+  address: { type: String, required: true },
+  state: { type: String, required: true },
+  country: { type: String, required: true },
   createdAt: { type: String, required: true },
 }, { timestamps: true });
 

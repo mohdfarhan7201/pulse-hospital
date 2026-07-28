@@ -80,7 +80,9 @@ export interface AppointmentRecord {
   date: string; // yyyy-mm-dd
   time: string; // e.g. "10:00 AM"
   status: AppointmentStatus;
-  reason: string;
+  address: string;
+  state: string;
+  country: string;
   createdAt: string;
 }
 
@@ -322,7 +324,9 @@ function seedDb(): DbShape {
       date: iso(now),
       time: "10:00 AM",
       status: "Confirmed",
-      reason: "Routine cardiac check-up",
+      address: "Routine cardiac check-up",
+      state: "Uttar Pradesh",
+      country: "India",
       createdAt: daysAgo(3),
     },
     {
@@ -337,7 +341,9 @@ function seedDb(): DbShape {
       date: iso(now),
       time: "10:30 AM",
       status: "Confirmed",
-      reason: "Migraine follow-up",
+      address: "Migraine follow-up",
+      state: "Uttar Pradesh",
+      country: "India",
       createdAt: daysAgo(2),
     },
     {
@@ -352,7 +358,9 @@ function seedDb(): DbShape {
       date: iso(now),
       time: "11:00 AM",
       status: "In Consultation",
-      reason: "Chest pain evaluation",
+      address: "Chest pain evaluation",
+      state: "Uttar Pradesh",
+      country: "India",
       createdAt: daysAgo(1),
     },
     {
@@ -367,7 +375,9 @@ function seedDb(): DbShape {
       date: iso(now),
       time: "11:30 AM",
       status: "Waiting",
-      reason: "ECG review",
+      address: "ECG review",
+      state: "Uttar Pradesh",
+      country: "India",
       createdAt: daysAgo(1),
     },
     {
@@ -382,7 +392,9 @@ function seedDb(): DbShape {
       date: iso(now),
       time: "12:00 PM",
       status: "Pending",
-      reason: "Post-surgery review",
+      address: "Post-surgery review",
+      state: "Uttar Pradesh",
+      country: "India",
       createdAt: daysAgo(1),
     },
     {
@@ -397,7 +409,9 @@ function seedDb(): DbShape {
       date: daysAgo(1),
       time: "01:00 PM",
       status: "Completed",
-      reason: "Knee pain",
+      address: "Knee pain",
+      state: "Uttar Pradesh",
+      country: "India",
       createdAt: daysAgo(6),
     },
     {
@@ -412,7 +426,9 @@ function seedDb(): DbShape {
       date: daysAgo(1),
       time: "02:30 PM",
       status: "Confirmed",
-      reason: "Consultation",
+      address: "Consultation",
+      state: "Uttar Pradesh",
+      country: "India",
       createdAt: daysAgo(4),
     },
     {
@@ -427,7 +443,9 @@ function seedDb(): DbShape {
       date: daysAgo(1),
       time: "04:00 PM",
       status: "Cancelled",
-      reason: "Follow-up",
+      address: "Follow-up",
+      state: "Uttar Pradesh",
+      country: "India",
       createdAt: daysAgo(5),
     },
     {
@@ -442,7 +460,9 @@ function seedDb(): DbShape {
       date: daysFromNow(1),
       time: "09:30 AM",
       status: "Confirmed",
-      reason: "New patient consult",
+      address: "New patient consult",
+      state: "Uttar Pradesh",
+      country: "India",
       createdAt: daysAgo(1),
     },
   ];
@@ -700,7 +720,9 @@ async function loadCacheFromMongo() {
         date: a.date,
         time: a.time,
         status: a.status,
-        reason: a.reason,
+        address: a.address,
+        state: a.state,
+        country: a.country,
         createdAt: a.createdAt,
       })),
       invoices: invoices.map((i: any) => ({

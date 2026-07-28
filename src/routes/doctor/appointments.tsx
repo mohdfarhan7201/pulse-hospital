@@ -68,7 +68,7 @@ function MyAppointmentsPage() {
       !q ||
       a.patientName.toLowerCase().includes(q) ||
       a.id.toLowerCase().includes(q) ||
-      a.reason.toLowerCase().includes(q) ||
+      a.address.toLowerCase().includes(q) || a.state.toLowerCase().includes(q) ||
       a.department.toLowerCase().includes(q);
     const matchesStatus = statusFilter === "all" || a.status === statusFilter;
     return matchesSearch && matchesStatus;

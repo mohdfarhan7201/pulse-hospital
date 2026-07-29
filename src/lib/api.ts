@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 
-import { getDb, saveDb, newId, hashPassword, type AppointmentStatus, type AppointmentRecord } from "./server/db";
+import { getDb, saveDb, newId, hashPassword, verifyPassword, type AppointmentStatus, type AppointmentRecord } from "./server/db";
 import { getSessionFn } from "./auth";
 
 export type { AppointmentStatus, AppointmentRecord };
@@ -694,7 +694,6 @@ export const updateDoctorProfileFn = createServerFn({ method: "POST" })
     if (!userRec) throw new Error("User not found");
 
     if (data.newPassword && data.password) {
-      const { verifyPassword } = await import("./server/db");
       if (!verifyPassword(data.password, userRec.passwordHash)) {
         throw new Error("Invalid current password");
       }

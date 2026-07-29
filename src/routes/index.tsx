@@ -626,7 +626,6 @@ function Technology() {
    ═══════════════════════════════════════════════════ */
 function Doctors() {
   const gridRef = useRef<HTMLDivElement>(null);
-  const [selectedDoctor, setSelectedDoctor] = useState<{img: string, n: string, r: string, exp: string, bio: string} | null>(null);
 
   // Hardcoded founding doctors — shown when DB doctors have no photos yet
   const fallbackDocs = [
@@ -698,8 +697,7 @@ function Doctors() {
           {docs.map((d) => (
             <div key={d.n}>
               <article 
-                onClick={() => setSelectedDoctor(d)}
-                className="group relative aspect-[3/4] w-full overflow-hidden rounded-[2.5rem] border border-border bg-black shadow-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[oklch(0.42_0.18_265)]/20 cursor-pointer"
+                className="group relative aspect-[3/4] w-full overflow-hidden rounded-[2.5rem] border border-border bg-black shadow-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[oklch(0.42_0.18_265)]/20"
               >
                 <img src={d.img} alt={d.n} width={800} height={1000} loading="lazy" className="absolute inset-0 h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-80" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-70 transition-opacity duration-500 group-hover:opacity-90" />
@@ -711,53 +709,11 @@ function Doctors() {
                 <div className="absolute inset-x-4 bottom-4 translate-y-4 overflow-hidden rounded-3xl border border-white/10 bg-white/10 p-6 backdrop-blur-xl transition-all duration-500 group-hover:translate-y-0 group-hover:bg-white/20 group-hover:border-white/30 shadow-2xl">
                   <h3 className="font-display text-2xl font-bold text-white shadow-black/50 drop-shadow-md">{d.n}</h3>
                   <p className="mt-1.5 text-sm font-medium tracking-wide text-[oklch(0.7_0.22_20)] drop-shadow-md">{d.r}</p>
-                  
-                  <div className="grid grid-rows-[0fr] opacity-0 transition-all duration-500 group-hover:mt-5 group-hover:grid-rows-[1fr] group-hover:opacity-100">
-                    <div className="overflow-hidden">
-                      <span className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white/20 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/30">
-                        View full profile <ArrowRight className="h-4 w-4" />
-                      </span>
-                    </div>
-                  </div>
                 </div>
               </article>
             </div>
           ))}
         </div>
-
-        <Dialog open={!!selectedDoctor} onOpenChange={(open) => !open && setSelectedDoctor(null)}>
-          <DialogContent className="sm:max-w-[425px] overflow-hidden rounded-3xl p-0 border-0 bg-transparent shadow-2xl gap-0">
-            {selectedDoctor && (
-              <div className="bg-card flex flex-col w-full h-full">
-                <div className="relative h-72 w-full">
-                  <img src={selectedDoctor.img} alt={selectedDoctor.n} className="h-full w-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
-                  <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-[oklch(0.2_0.05_265)] shadow-sm">
-                    {selectedDoctor.exp} Experience
-                  </span>
-                </div>
-                <div className="p-6 pt-0">
-                  <DialogHeader>
-                    <DialogTitle className="font-display text-2xl font-bold">{selectedDoctor.n}</DialogTitle>
-                    <DialogDescription className="text-[oklch(0.42_0.18_265)] font-medium text-base">
-                      {selectedDoctor.r}
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="mt-4 text-muted-foreground text-sm leading-relaxed">
-                    {selectedDoctor.bio}
-                  </div>
-                  <div className="mt-6 flex gap-3">
-                    <AppointmentModal>
-                      <button onClick={() => setSelectedDoctor(null)} className="btn-lux flex-1 text-center items-center justify-center rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity cursor-pointer">
-                        Book Appointment
-                      </button>
-                    </AppointmentModal>
-                  </div>
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
       </div>
     </section>
   );

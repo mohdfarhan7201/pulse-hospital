@@ -148,7 +148,7 @@ function MyAppointmentsPage() {
               <TableHead>Patient Details</TableHead>
               <TableHead>Department</TableHead>
               <TableHead>Date &amp; Slot</TableHead>
-              <TableHead>Reason / Notes</TableHead>
+              <TableHead>Location Details</TableHead>
               <TableHead className="w-[180px]">Status &amp; Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -188,8 +188,13 @@ function MyAppointmentsPage() {
                   <div className="text-xs text-muted-foreground">{a.time}</div>
                 </TableCell>
 
-                <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">
-                  {a.reason || "General Consultation"}
+                <TableCell className="text-sm">
+                  <div className="font-medium text-foreground max-w-[200px] truncate" title={a.address}>
+                    {a.address || "No address provided"}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-0.5">
+                    {[a.state, a.country].filter(Boolean).join(", ")}
+                  </div>
                 </TableCell>
 
                 <TableCell>

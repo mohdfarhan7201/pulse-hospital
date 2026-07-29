@@ -1,5 +1,7 @@
-import { createFileRoute, useRouteContext } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, useRouteContext, useRouter } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { updateDoctorProfileFn, getMyProfileFn } from "@/lib/api";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import {
   CheckCircle2,
@@ -24,9 +26,25 @@ export const Route = createFileRoute("/doctor/settings")({
 
 function DoctorSettingsPage() {
   const { user } = useRouteContext({ from: "/doctor" });
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { data: profile } = useQuery({ queryKey: ["doctor-profile"], queryFn: () => getMyProfileFn() });
+
 
   // Doctor Profile State
   const [docName, setDocName] = useState(user.name);
+  useEffect(() => {
+    if (profile) {
+      setDocName(profile.name || "");
+      setDocEmail(profile.email || "");
+      setDocPhone(profile.phone || "");
+      setExperience(String(profile.experienceYears || ""));
+      setDepartment(profile.department || "");
+      setSpecialty(profile.specialty || "");
+      setQualification(profile.bio || "");
+    }
+  }, [profile]);
+  
   const [docEmail, setDocEmail] = useState(user.email);
   const [docPhone, setDocPhone] = useState("+91 98765 43210");
   const [specialty, setSpecialty] = useState("Interventional Cardiology");
@@ -45,6 +63,53 @@ function DoctorSettingsPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [savedBanner, setSavedBanner] = useState<string | null>(null);
+
+
+  const updateMutation = useMutation({
+    mutationFn: (vars: Parameters<typeof updateDoctorProfileFn>[0]["data"]) => updateDoctorProfileFn({ data: vars }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["doctor-profile"] });
+      router.invalidate();
+    }
+  });
+
+  const handleSaveProfile = async () => {
+    try {
+      await updateMutation.mutateAsync({
+        name: docName,
+        email: docEmail,
+        phone: docPhone,
+        experienceYears: Number(experience),
+        department,
+        specialty,
+        qualification
+      });
+      triggerSaved("Profile details saved!");
+    } catch (e: any) {
+      toast.error(e.message || "Failed to save profile");
+    }
+  };
+
+  const handleSavePassword = async () => {
+    if (newPassword !== confirmPassword) {
+      return toast.error("New passwords do not match!");
+    }
+    if (!currPassword) {
+      return toast.error("Current password is required.");
+    }
+    try {
+      await updateMutation.mutateAsync({
+        password: currPassword,
+        newPassword: newPassword,
+      });
+      setCurrPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      triggerSaved("Password updated securely!");
+    } catch (e: any) {
+      toast.error(e.message || "Failed to update password");
+    }
+  };
 
   const triggerSaved = (msg: string) => {
     setSavedBanner(msg);
@@ -165,7 +230,7 @@ function DoctorSettingsPage() {
               </div>
 
               <div className="pt-2 flex justify-end">
-                <Button onClick={() => triggerSaved("Profile details saved!")} className="gap-2">
+                <Button onClick={handleSaveProfile} disabled={updateMutation.isPending} className="gap-2">
                   <Save className="h-4 w-4" /> Save Profile Details
                 </Button>
               </div>

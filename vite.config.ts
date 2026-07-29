@@ -14,4 +14,16 @@ export default defineConfig({
     preset: "vercel",
     minify: false,
   },
+  vite: {
+    ssr: {
+      noExternal: [
+        /^@radix-ui\//,
+        /^@floating-ui\//,
+        "lucide-react",
+        "recharts",
+        "clsx",
+        "tailwind-merge",
+      ],
+    },
+  },
 });

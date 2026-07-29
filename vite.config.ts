@@ -12,25 +12,5 @@ export default defineConfig({
   },
   nitro: {
     preset: "vercel",
-    minify: false,
-  },
-  vite: {
-    ssr: {
-      noExternal: [
-        /^@radix-ui\//,
-        /^@floating-ui\//,
-        /^@tanstack\//,
-        "lucide-react",
-        "recharts",
-        "clsx",
-        "tailwind-merge",
-        "react",
-        "react-dom",
-        "react-is",
-        "prop-types",
-        "date-fns",
-        "react-day-picker",
-      ],
-    },
   },
 });

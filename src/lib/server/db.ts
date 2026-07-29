@@ -599,6 +599,7 @@ import {
 
 let isMongoConnecting = false;
 let isMongoConnected = false;
+let lastMongoSync = 0;
 
 export async function syncMongoDb() {
   if (isMongoConnecting || isMongoConnected) return;
@@ -613,6 +614,7 @@ export async function syncMongoDb() {
     } else if (userCount > 0) {
       await loadCacheFromMongo();
     }
+    lastMongoSync = Date.now();
   } catch (err: any) {
     console.error(`[MongoDB] Connection failed: ${err.message || err}`);
   } finally {
@@ -765,6 +767,11 @@ async function load(): Promise<DbShape> {
     try {
       await syncMongoDb();
     } catch {}
+  } else if (isMongoConnected && Date.now() - lastMongoSync > 2000) {
+    try {
+      await loadCacheFromMongo();
+      lastMongoSync = Date.now();
+    } catch {}
   }
   if (cache) return cache;
   try {
@@ -776,6 +783,14 @@ async function load(): Promise<DbShape> {
   } catch {
     // fall through if read error
   }
+  
+  // If we have a mongo URI but failed to connect, returning hardcoded seedDb() 
+  // will wipe out the user's view in production. Only seed if we actually intend to use local file.
+  if (process.env.MONGODB_URI) {
+    console.warn("[MongoDB] Returning empty fallback cache instead of hardcoded seed, as MongoDB is configured.");
+    return { users: [], doctors: [], patients: [], appointments: [], invoices: [], notifications: [], sessions: {} };
+  }
+
   cache = seedDb();
   await persist();
   return cache;

@@ -585,11 +585,194 @@ function seedDb(): DbShape {
   return { users, doctors, patients, appointments, invoices, notifications, sessions: {} };
 }
 
+import {
+  connectToDatabase,
+  UserModel,
+  DoctorModel,
+  PatientModel,
+  AppointmentModel,
+  InvoiceModel,
+  NotificationModel,
+  SessionModel,
+  SettingsModel,
+} from "./mongodb";
 
+let isMongoConnecting = false;
+let isMongoConnected = false;
+let lastMongoSync = 0;
 
+export async function syncMongoDb() {
+  if (isMongoConnecting || isMongoConnected) return;
+  isMongoConnecting = true;
+  try {
+    await connectToDatabase();
+    isMongoConnected = true;
 
+    const userCount = await UserModel.countDocuments();
+    if (userCount === 0 && cache) {
+      await saveCacheToMongo();
+    } else if (userCount > 0) {
+      await loadCacheFromMongo();
+    }
+    lastMongoSync = Date.now();
+  } catch (err: any) {
+    console.error(`[MongoDB] Connection failed: ${err.message || err}`);
+  } finally {
+    isMongoConnecting = false;
+  }
+}
+
+async function saveCacheToMongo() {
+  if (!cache || !isMongoConnected) return;
+  try {
+    const promises: Promise<any>[] = [
+      ...cache.users.map((u) => UserModel.updateOne({ id: u.id }, u, { upsert: true })),
+      ...cache.doctors.map((d) => DoctorModel.updateOne({ id: d.id }, d, { upsert: true })),
+      ...cache.patients.map((p) => PatientModel.updateOne({ id: p.id }, p, { upsert: true })),
+      ...cache.appointments.map((a) => AppointmentModel.updateOne({ id: a.id }, a, { upsert: true })),
+      ...cache.invoices.map((i) => InvoiceModel.updateOne({ id: i.id }, i, { upsert: true })),
+      ...cache.notifications.map((n) => NotificationModel.updateOne({ id: n.id }, n, { upsert: true })),
+      ...Object.entries(cache.sessions).map(([sessionId, s]) =>
+        SessionModel.updateOne({ sessionId }, { sessionId, ...s }, { upsert: true })
+      ),
+    ];
+
+    if (cache.settings) {
+      promises.push(
+        SettingsModel.updateOne(
+          { id: "hospital_settings" },
+          { id: "hospital_settings", ...cache.settings },
+          { upsert: true }
+        )
+      );
+    }
+
+    await Promise.all(promises);
+  } catch (err: any) {
+    console.warn("[MongoDB] Error saving data to MongoDB:", err.message);
+  }
+}
+
+async function loadCacheFromMongo() {
+  try {
+    const [users, doctors, patients, appointments, invoices, notifications, sessionsDocs, settingsDocs] = await Promise.all([
+      UserModel.find({}).lean(),
+      DoctorModel.find({}).lean(),
+      PatientModel.find({}).lean(),
+      AppointmentModel.find({}).lean(),
+      InvoiceModel.find({}).lean(),
+      NotificationModel.find({}).lean(),
+      SessionModel.find({}).lean(),
+      SettingsModel.find({}).lean(),
+    ]);
+
+    const sessions: Record<string, SessionRecord> = {};
+    sessionsDocs.forEach((doc: any) => {
+      sessions[doc.sessionId] = {
+        userId: doc.userId,
+        createdAt: doc.createdAt,
+        expiresAt: doc.expiresAt,
+      };
+    });
+
+    cache = {
+      users: users.map((u: any) => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        passwordHash: u.passwordHash,
+        role: u.role,
+        doctorId: u.doctorId,
+        avatarInitials: u.avatarInitials,
+      })),
+      doctors: doctors.map((d: any) => ({
+        id: d.id,
+        name: d.name,
+        specialty: d.specialty,
+        department: d.department,
+        email: d.email,
+        phone: d.phone,
+        experienceYears: d.experienceYears,
+        status: d.status,
+        joinedOn: d.joinedOn,
+        photoUrl: d.photoUrl,
+        bio: d.bio,
+      })),
+      patients: patients.map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        age: p.age,
+        gender: p.gender,
+        phone: p.phone,
+        email: p.email,
+        department: p.department,
+        primaryDoctorId: p.primaryDoctorId,
+        lastVisit: p.lastVisit,
+        createdAt: p.createdAt,
+      })),
+      appointments: appointments.map((a: any) => ({
+        id: a.id,
+        patientId: a.patientId,
+        patientName: a.patientName,
+        age: a.age,
+        gender: a.gender,
+        doctorId: a.doctorId,
+        doctorName: a.doctorName,
+        department: a.department,
+        date: a.date,
+        time: a.time,
+        status: a.status,
+        address: a.address,
+        state: a.state,
+        country: a.country,
+        createdAt: a.createdAt,
+      })),
+      invoices: invoices.map((i: any) => ({
+        id: i.id,
+        patientId: i.patientId,
+        patientName: i.patientName,
+        appointmentId: i.appointmentId,
+        amount: i.amount,
+        status: i.status,
+        date: i.date,
+      })),
+      notifications: notifications.map((n: any) => ({
+        id: n.id,
+        audience: n.audience,
+        message: n.message,
+        createdAt: n.createdAt,
+        read: n.read,
+      })),
+      sessions,
+      settings: settingsDocs.length > 0 ? {
+        hospitalName: settingsDocs[0].hospitalName,
+        tagline: settingsDocs[0].tagline,
+        contactEmail: settingsDocs[0].contactEmail,
+        helplinePhone: settingsDocs[0].helplinePhone,
+        address: settingsDocs[0].address,
+        opdHours: settingsDocs[0].opdHours,
+        normalFee: settingsDocs[0].normalFee,
+        emergencyFee: settingsDocs[0].emergencyFee,
+        upiId: settingsDocs[0].upiId,
+        upiName: settingsDocs[0].upiName,
+      } : undefined,
+    };
+  } catch (err: any) {
+    console.warn("[MongoDB] Error loading data from MongoDB:", err.message);
+  }
+}
 
 async function load(): Promise<DbShape> {
+  if (!isMongoConnected && !isMongoConnecting) {
+    try {
+      await syncMongoDb();
+    } catch {}
+  } else if (isMongoConnected && Date.now() - lastMongoSync > 2000) {
+    try {
+      await loadCacheFromMongo();
+      lastMongoSync = Date.now();
+    } catch {}
+  }
   if (cache) return cache;
   try {
     if (existsSync(DB_PATH)) {
@@ -599,6 +782,13 @@ async function load(): Promise<DbShape> {
     }
   } catch {
     // fall through if read error
+  }
+  
+  // If we have a mongo URI but failed to connect, returning hardcoded seedDb() 
+  // will wipe out the user's view in production. Only seed if we actually intend to use local file.
+  if (process.env.MONGODB_URI) {
+    console.warn("[MongoDB] Returning empty fallback cache instead of hardcoded seed, as MongoDB is configured.");
+    return { users: [], doctors: [], patients: [], appointments: [], invoices: [], notifications: [], sessions: {} };
   }
 
   cache = seedDb();
@@ -615,6 +805,11 @@ async function persist() {
   } catch {
     // In edge/serverless runtimes without a writable filesystem, we silently
     // keep working off the in-memory cache for the life of the process.
+  }
+  if (isMongoConnected) {
+    try {
+      await saveCacheToMongo();
+    } catch {}
   }
 }
 

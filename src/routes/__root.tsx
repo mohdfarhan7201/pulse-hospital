@@ -43,8 +43,10 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           This page didn't load
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+        <p className="mt-2 text-sm text-muted-foreground break-words">
+          Something went wrong: {error.message}
+          <br/>
+          <pre className="text-xs text-left overflow-auto max-h-40 mt-2 p-2 bg-muted rounded">{error.stack}</pre>
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button

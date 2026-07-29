@@ -79,11 +79,18 @@ function ProfilePage() {
                 <p className="text-sm font-medium">{doctor.phone}</p>
               </div>
             </div>
+            <div className="flex items-center gap-3 rounded-lg border p-3">
+              <Briefcase className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-xs text-muted-foreground">Specialization</p>
+                <p className="text-sm font-medium">{doctor.specialty}</p>
+              </div>
+            </div>
             <div className="flex items-center gap-3 rounded-lg border p-3 sm:col-span-2">
               <Users className="h-4 w-4 text-muted-foreground" />
               <div>
-                <p className="text-xs text-muted-foreground">Patients under care</p>
-                <p className="text-sm font-medium">{doctor.patientCount}</p>
+                <p className="text-xs text-muted-foreground">Degree & Qualification</p>
+                <p className="text-sm font-medium">{doctor.bio || "Not specified"}</p>
               </div>
             </div>
           </div>

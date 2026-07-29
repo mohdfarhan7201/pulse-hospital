@@ -60,8 +60,8 @@ function DoctorOverviewPage() {
         />
       </div>
 
-      {/* Main Content: Today's Appointments & Recent Patients */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      {/* Main Content: Today's Appointments */}
+      <div className="grid grid-cols-1 gap-6">
         <Card className="p-5">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="font-semibold text-base">Today's Appointments</h3>
@@ -90,47 +90,6 @@ function DoctorOverviewPage() {
             {!isLoading && (data?.todaysAppointments ?? []).length === 0 && (
               <div className="py-12 text-center text-sm text-muted-foreground">
                 No appointments scheduled for today.
-              </div>
-            )}
-          </ul>
-        </Card>
-
-        <Card className="p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-semibold text-base">Recent Patients</h3>
-            <Link
-              to="/doctor/patients"
-              className="text-sm font-medium text-primary hover:underline"
-            >
-              View All
-            </Link>
-          </div>
-          <ul className="divide-y">
-            {(data?.recentPatients ?? []).map((p) => (
-              <li key={p.id} className="flex items-center gap-3 py-3">
-                <Avatar className="h-9 w-9 border">
-                  <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
-                    {p.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .slice(0, 2)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold">{p.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {p.age} yrs, {p.gender} · {p.phone}
-                  </p>
-                </div>
-                <span className="text-xs font-medium text-muted-foreground">
-                  Last: {p.lastVisit}
-                </span>
-              </li>
-            ))}
-            {!isLoading && (data?.recentPatients ?? []).length === 0 && (
-              <div className="py-12 text-center text-sm text-muted-foreground">
-                No recent patient records.
               </div>
             )}
           </ul>

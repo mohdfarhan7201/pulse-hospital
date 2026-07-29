@@ -22,7 +22,7 @@ function ProfilePage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold">Profile</h2>
-        <p className="text-sm text-muted-foreground">Your professional details at Pulse Hospital.</p>
+        <p className="text-sm text-muted-foreground">Your professional details at Pulse Heart Centre.</p>
       </div>
 
       {isLoading && <p className="text-sm text-muted-foreground">Loading profile…</p>}

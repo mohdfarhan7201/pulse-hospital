@@ -105,12 +105,12 @@ function LoginPage() {
             </span>
             <span className="font-display text-lg font-bold">Pulse Heart Centre</span>
           </div>
-
-          <h1 className="text-2xl font-bold tracking-tight">Sign in</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Sign in to access your Pulse Hospital dashboard.
-          </p>
-
+          <div className="flex flex-col space-y-2 text-center">
+            <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
+            <p className="text-sm text-muted-foreground">
+              Sign in to access your Pulse Heart Centre dashboard.
+            </p>
+          </div>
           {currentUser && (
             <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-3.5 text-xs text-foreground">
               <p className="font-semibold">

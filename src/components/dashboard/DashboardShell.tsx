@@ -68,7 +68,7 @@ export function DashboardShell({
           <div className="leading-tight">
             <p className="text-sm font-bold tracking-tight">PULSE</p>
             <p className="text-[10px] font-semibold tracking-[0.2em] text-muted-foreground">
-              HOSPITAL
+              HEART CENTRE
             </p>
           </div>
         </div>

@@ -70,6 +70,7 @@ function DoctorSettingsPage() {
     mutationFn: (vars: Parameters<typeof updateDoctorProfileFn>[0]["data"]) => updateDoctorProfileFn({ data: vars }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["doctor-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["my-profile"] });
       router.invalidate();
     }
   });

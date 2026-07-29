@@ -1116,7 +1116,6 @@ function Appointment() {
           address,
           state,
           country,
-          type,
         },
       });
 

@@ -16,7 +16,6 @@ import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardSh
 const NAV_ITEMS: NavItem[] = [
   { to: "/doctor", label: "Dashboard", icon: <LayoutDashboard /> },
   { to: "/doctor/appointments", label: "My Appointments", icon: <CalendarDays /> },
-  { to: "/doctor/patients", label: "Patients", icon: <Users /> },
   { to: "/doctor/notifications", label: "Notifications", icon: <Bell /> },
   { to: "/doctor/profile", label: "Profile", icon: <User /> },
   { to: "/doctor/settings", label: "Settings", icon: <Settings /> },

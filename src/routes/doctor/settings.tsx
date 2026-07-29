@@ -33,6 +33,14 @@ function DoctorSettingsPage() {
 
   // Doctor Profile State
   const [docName, setDocName] = useState(user.name);
+
+  const [docEmail, setDocEmail] = useState(user.email);
+  const [docPhone, setDocPhone] = useState("+91 98765 43210");
+  const [specialty, setSpecialty] = useState("Interventional Cardiology");
+  const [department, setDepartment] = useState("Cardiology");
+  const [experience, setExperience] = useState("12");
+  const [qualification, setQualification] = useState("MD, DM (Cardiology), FACC");
+
   useEffect(() => {
     if (profile) {
       setDocName(profile.name || "");
@@ -44,13 +52,6 @@ function DoctorSettingsPage() {
       setQualification(profile.bio || "");
     }
   }, [profile]);
-  
-  const [docEmail, setDocEmail] = useState(user.email);
-  const [docPhone, setDocPhone] = useState("+91 98765 43210");
-  const [specialty, setSpecialty] = useState("Interventional Cardiology");
-  const [department, setDepartment] = useState("Cardiology");
-  const [experience, setExperience] = useState("12");
-  const [qualification, setQualification] = useState("MD, DM (Cardiology), FACC");
 
   // Security & Password State
   const [currPassword, setCurrPassword] = useState("");

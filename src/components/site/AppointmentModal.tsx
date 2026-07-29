@@ -112,7 +112,9 @@ export function AppointmentModal({ children }: AppointmentModalProps) {
     const gender = ((formData.get("gender") as string) || "Male") as "Male" | "Female" | "Other";
     const age = parseInt(ageStr, 10) || 30;
     const date = (formData.get("date") as string) || new Date().toISOString().slice(0, 10);
-    const notes = (formData.get("address") as string) || "General Consultation";
+    const address = (formData.get("address") as string) || "";
+    const state = (formData.get("state") as string) || "";
+    const country = (formData.get("country") as string) || "";
 
     const doctor = publicDoctors.find((d) => d.id === selectedDoctorId);
 
@@ -128,7 +130,9 @@ export function AppointmentModal({ children }: AppointmentModalProps) {
           doctorId: selectedDoctorId || doctor?.id || "",
           date,
           time: appointmentType === "emergency" ? "Immediate Emergency" : "10:00 AM",
-          reason: notes,
+          address,
+          state,
+          country,
         },
       });
 

@@ -21,6 +21,12 @@ export default defineConfig({
     ssr: {
       external: ["mongoose", "mongodb", "bson"],
       noExternal: [
+        ...(process.env.NODE_ENV === "production" ? [
+          /^@tanstack\//,
+          "react",
+          "react-dom",
+          "react/jsx-runtime"
+        ] : []),
         /^@radix-ui\//,
         /^@floating-ui\//,
         "framer-motion",

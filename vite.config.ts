@@ -21,7 +21,6 @@ export default defineConfig({
       noExternal: [
         /^@radix-ui\//,
         /^@floating-ui\//,
-        /^@tanstack\//,
         "lucide-react",
         "recharts",
         "clsx",

@@ -261,7 +261,7 @@ export function AppointmentStatus() {
                             TOKEN NO.
                           </div>
                           <div className="mt-1 flex items-center">
-                            {activeAppt.status === "Confirmed" && activeAppt.tokenNo ? (
+                            {activeAppt.tokenNo && activeAppt.tokenNo !== "TBD" ? (
                               <span className="grid h-8 w-8 place-items-center rounded-full bg-cyan-500/15 text-sm font-bold text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
                                 {activeAppt.tokenNo}
                               </span>
@@ -280,7 +280,7 @@ export function AppointmentStatus() {
                           <div className="mt-1 flex items-center gap-2 text-sm font-bold text-foreground">
                             <Calendar className="h-4 w-4 text-cyan-600" />
                             <span>
-                              {activeAppt.date} · {activeAppt.status === "Confirmed" && activeAppt.time ? activeAppt.time : "Pending Allotment"}
+                              {activeAppt.date} · {activeAppt.time && activeAppt.time !== "Pending Allotment" ? activeAppt.time : "Pending Allotment"}
                             </span>
                           </div>
                         </div>

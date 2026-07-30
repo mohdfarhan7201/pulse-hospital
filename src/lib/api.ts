@@ -541,14 +541,14 @@ export const lookupAppointmentStatusFn = createServerFn({ method: "POST" })
         (x) => x.doctorId === a.doctorId && x.date === a.date
       );
       const tokenIndex = sameDayDoctorAppts.findIndex((x) => x.id === a.id);
-      const tokenNo = tokenIndex >= 0 ? tokenIndex + 1 : idx + 1;
-      const formattedToken = String(tokenNo).padStart(2, "0");
+      const calculatedTokenNo = tokenIndex >= 0 ? tokenIndex + 1 : idx + 1;
+      const formattedToken = String(calculatedTokenNo).padStart(2, "0");
       const dateClean = a.date.replace(/-/g, "");
 
       return {
         ...a,
-        tokenNo: formattedToken,
-        displayId: `#PHC-${dateClean}-${formattedToken}`,
+        tokenNo: a.tokenNo || "",
+        displayId: `#PHC-${dateClean}-${a.tokenNo || formattedToken}`,
       };
     });
   });

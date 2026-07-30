@@ -547,7 +547,7 @@ export const lookupAppointmentStatusFn = createServerFn({ method: "POST" })
 
       return {
         ...a,
-        tokenNo: a.tokenNo || "",
+        tokenNo: a.tokenNo || formattedToken,
         displayId: `#PHC-${dateClean}-${a.tokenNo || formattedToken}`,
       };
     });

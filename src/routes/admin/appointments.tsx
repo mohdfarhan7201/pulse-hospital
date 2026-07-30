@@ -187,7 +187,21 @@ function AppointmentsPage() {
                 <TableCell>{a.department}</TableCell>
                 <TableCell className="text-muted-foreground">
                   <div>{a.date}</div>
-                  <div className="text-xs">{a.time || "No time"} {a.tokenNo ? `(Token: ${a.tokenNo})` : ""}</div>
+                  <div className="text-xs flex items-center gap-2">
+                    {a.time || "No time"} {a.tokenNo ? `(Token: ${a.tokenNo})` : ""}
+                    {a.status === "Confirmed" && (
+                      <button
+                        onClick={() => {
+                          setConfirmAppt(a);
+                          setTimeInput(a.time || "");
+                          setTokenInput(a.tokenNo || "");
+                        }}
+                        className="text-primary hover:underline font-medium text-[10px]"
+                      >
+                        Edit
+                      </button>
+                    )}
+                  </div>
                 </TableCell>
                 <TableCell className="text-muted-foreground"><div className="truncate max-w-[200px]" title={`${a.address}, ${a.state}, ${a.country}`}>{a.address}, {a.state}, {a.country}</div></TableCell>
                 <TableCell>

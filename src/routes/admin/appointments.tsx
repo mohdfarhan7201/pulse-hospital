@@ -80,8 +80,8 @@ function AppointmentsPage() {
   const handleStatusChange = (a: any, status: string) => {
     if (status === "Confirmed") {
       setConfirmAppt(a);
-      setTimeInput("10:00 AM");
-      setTokenInput("01");
+      setTimeInput(a.time && a.time !== "Pending Allotment" ? a.time : "");
+      setTokenInput(a.tokenNo && a.tokenNo !== "TBD" ? a.tokenNo : "");
     } else {
       updateStatus.mutate({ id: a.id, status: status as AppointmentStatus });
     }
@@ -186,7 +186,8 @@ function AppointmentsPage() {
                 <TableCell>{a.doctorName}</TableCell>
                 <TableCell>{a.department}</TableCell>
                 <TableCell className="text-muted-foreground">
-                  {a.date}, {a.time}
+                  <div>{a.date}</div>
+                  <div className="text-xs">{a.time || "No time"} {a.tokenNo ? `(Token: ${a.tokenNo})` : ""}</div>
                 </TableCell>
                 <TableCell className="text-muted-foreground"><div className="truncate max-w-[200px]" title={`${a.address}, ${a.state}, ${a.country}`}>{a.address}, {a.state}, {a.country}</div></TableCell>
                 <TableCell>

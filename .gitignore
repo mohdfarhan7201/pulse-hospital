@@ -36,3 +36,5 @@ data/pulse-db.json
 # misc
 *.pem
 *.tsbuildinfo
+
+.vercel

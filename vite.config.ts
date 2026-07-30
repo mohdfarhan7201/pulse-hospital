@@ -14,19 +14,13 @@ export default defineConfig({
     preset: "vercel",
     externals: {
       traceInclude: ["node_modules/mongoose/**", "node_modules/mongodb/**", "node_modules/bson/**"],
-      external: ["mongoose", "mongodb", "bson"],
+      external: ["mongoose", "mongodb", "bson", "react", "react-dom", "react/jsx-runtime", "@tanstack/react-query", "@tanstack/react-router"],
     },
   },
   vite: {
     ssr: {
       external: ["mongoose", "mongodb", "bson"],
       noExternal: [
-        ...(process.env.NODE_ENV === "production" ? [
-          /^@tanstack\//,
-          "react",
-          "react-dom",
-          "react/jsx-runtime"
-        ] : []),
         /^@radix-ui\//,
         /^@floating-ui\//,
         "framer-motion",

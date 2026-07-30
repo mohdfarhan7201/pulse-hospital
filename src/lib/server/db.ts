@@ -79,6 +79,7 @@ export interface AppointmentRecord {
   department: string;
   date: string; // yyyy-mm-dd
   time: string; // e.g. "10:00 AM"
+  tokenNo?: string;
   status: AppointmentStatus;
   address: string;
   state: string;

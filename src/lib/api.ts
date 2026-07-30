@@ -203,15 +203,8 @@ export const createPublicAppointmentFn = createServerFn({ method: "POST" })
       doctorName,
       department: data.department || doctor?.department || "General Medicine",
       date: data.date,
-      time: (() => {
-        if (data.time && data.time.trim()) return data.time.trim();
-        const sameDayAppts = db.appointments.filter(
-          (a) => a.doctorId === data.doctorId && a.date === data.date
-        );
-        if (sameDayAppts.length === 0) return "10:00 AM";
-        const maxMins = Math.max(...sameDayAppts.map((a) => parseTimeToMinutes(a.time)));
-        return formatMinutesToTime(maxMins + 30);
-      })(),
+      time: "",
+      tokenNo: "",
       status: "Pending",
       address: data.address,
       state: data.state,
@@ -412,12 +405,14 @@ export const listAllAppointmentsFn = createServerFn({ method: "GET" }).handler(a
 });
 
 export const updateAppointmentStatusFn = createServerFn({ method: "POST" })
-  .validator((data: { id: string; status: AppointmentStatus }) => data)
+  .validator((data: { id: string; status: AppointmentStatus; time?: string; tokenNo?: string }) => data)
   .handler(async ({ data }) => {
     const db = await getDb();
     const appt = db.appointments.find((a) => a.id === data.id);
     if (!appt) throw new Error("Appointment not found");
     appt.status = data.status;
+    if (data.time !== undefined) appt.time = data.time;
+    if (data.tokenNo !== undefined) appt.tokenNo = data.tokenNo;
     await saveDb();
     return appt;
   });

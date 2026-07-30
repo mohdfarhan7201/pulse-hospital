@@ -20,6 +20,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import {
   Table,
   TableBody,
   TableCell,
@@ -52,6 +61,42 @@ function AppointmentsPage() {
     queryFn: () => listAllAppointmentsFn(),
   });
 
+  const [confirmAppt, setConfirmAppt] = useState<any>(null);
+  const [timeInput, setTimeInput] = useState("10:00 AM");
+  const [tokenInput, setTokenInput] = useState("01");
+
+  const updateStatus = useMutation({
+    mutationFn: (vars: { id: string; status: AppointmentStatus; time?: string; tokenNo?: string }) =>
+      updateAppointmentStatusFn({ data: vars }),
+    onSuccess: (data, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["all-appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-overview"] });
+      toast.success(`Appointment status updated to "${vars.status}"!`);
+      setConfirmAppt(null);
+    },
+    onError: (err: any) => toast.error(err.message),
+  });
+
+  const handleStatusChange = (a: any, status: string) => {
+    if (status === "Confirmed") {
+      setConfirmAppt(a);
+      setTimeInput("10:00 AM");
+      setTokenInput("01");
+    } else {
+      updateStatus.mutate({ id: a.id, status: status as AppointmentStatus });
+    }
+  };
+
+  const submitConfirm = () => {
+    if (!confirmAppt) return;
+    updateStatus.mutate({
+      id: confirmAppt.id,
+      status: "Confirmed",
+      time: timeInput,
+      tokenNo: tokenInput,
+    });
+  };
+
   const filtered = (appointments ?? []).filter((a) => {
     const q = search.toLowerCase();
     const matchesSearch =
@@ -62,16 +107,6 @@ function AppointmentsPage() {
       a.address.toLowerCase().includes(q) || a.state.toLowerCase().includes(q);
     const matchesStatus = statusFilter === "all" || a.status === statusFilter;
     return matchesSearch && matchesStatus;
-  });
-
-  const updateStatus = useMutation({
-    mutationFn: (vars: { id: string; status: AppointmentStatus }) =>
-      updateAppointmentStatusFn({ data: vars }),
-    onSuccess: (_res, vars) => {
-      queryClient.invalidateQueries({ queryKey: ["all-appointments"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-overview"] });
-      toast.success(`Appointment status updated to "${vars.status}"!`);
-    },
   });
 
   return (
@@ -157,9 +192,7 @@ function AppointmentsPage() {
                 <TableCell>
                   <Select
                     value={a.status}
-                    onValueChange={(status) =>
-                      updateStatus.mutate({ id: a.id, status: status as AppointmentStatus })
-                    }
+                    onValueChange={(status) => handleStatusChange(a, status)}
                   >
                     <SelectTrigger className="h-8 w-[150px]">
                       <SelectValue>
@@ -180,6 +213,41 @@ function AppointmentsPage() {
           </TableBody>
         </Table>
       </Card>
+
+      <Dialog open={!!confirmAppt} onOpenChange={(o) => !o && setConfirmAppt(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Appointment</DialogTitle>
+            <DialogDescription>
+              Please allot a time and token number for {confirmAppt?.patientName}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Allotted Time</label>
+              <Input
+                value={timeInput}
+                onChange={(e) => setTimeInput(e.target.value)}
+                placeholder="e.g. 10:30 AM"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Token Number</label>
+              <Input
+                value={tokenInput}
+                onChange={(e) => setTokenInput(e.target.value)}
+                placeholder="e.g. 05"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmAppt(null)}>Cancel</Button>
+            <Button onClick={submitConfirm} disabled={updateStatus.isPending}>
+              Confirm Appointment
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -1,0 +1,1 @@
+var e=`/assets/logo1-BGvW1E_A.png`;export{e as t};

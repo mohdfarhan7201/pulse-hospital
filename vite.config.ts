@@ -13,15 +13,22 @@ export default defineConfig({
   nitro: {
     preset: "vercel",
     externals: {
+      traceInclude: ["node_modules/mongoose/**", "node_modules/mongodb/**", "node_modules/bson/**"],
       external: ["mongoose", "mongodb", "bson"],
     },
   },
   vite: {
     ssr: {
+      external: ["mongoose", "mongodb", "bson"],
       noExternal: [
         /^@radix-ui\//,
         /^@floating-ui\//,
+        "framer-motion",
         "lucide-react",
+        /^@tanstack\//,
+        "react",
+        "react-dom",
+        "react/jsx-runtime",
         "recharts",
         "clsx",
         "tailwind-merge",

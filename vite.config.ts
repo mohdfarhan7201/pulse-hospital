@@ -12,9 +12,14 @@ export default defineConfig({
   },
   nitro: {
     preset: "vercel",
+    rollupConfig: {
+      output: {
+        inlineDynamicImports: true,
+      },
+    },
     externals: {
       traceInclude: ["node_modules/mongoose/**", "node_modules/mongodb/**", "node_modules/bson/**"],
-      external: ["mongoose", "mongodb", "bson", "react", "react-dom", "react/jsx-runtime", "@tanstack/react-query", "@tanstack/react-router"],
+      external: ["mongoose", "mongodb", "bson"],
     },
   },
   vite: {

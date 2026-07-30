@@ -1112,7 +1112,6 @@ function Appointment() {
           department: selectedDept || doctor?.department || "General Medicine",
           doctorId: selectedDoctorId || doctor?.id || "",
           date,
-          time: "10:00 AM",
           address,
           state,
           country,

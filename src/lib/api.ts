@@ -125,6 +125,26 @@ export const listPublicDoctorsFn = createServerFn({ method: "GET" }).handler(asy
     }));
 });
 
+function parseTimeToMinutes(timeStr: string) {
+  const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  if (!match) return 10 * 60; // default 10:00 AM
+  let hours = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+  const ampm = match[3].toUpperCase();
+  if (ampm === "PM" && hours !== 12) hours += 12;
+  if (ampm === "AM" && hours === 12) hours = 0;
+  return hours * 60 + minutes;
+}
+
+function formatMinutesToTime(totalMins: number) {
+  let hours = Math.floor(totalMins / 60);
+  const mins = totalMins % 60;
+  const ampm = hours >= 12 ? "PM" : "AM";
+  if (hours > 12) hours -= 12;
+  if (hours === 0) hours = 12;
+  return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")} ${ampm}`;
+}
+
 export const createPublicAppointmentFn = createServerFn({ method: "POST" })
   .validator(
     (data: {
@@ -183,7 +203,15 @@ export const createPublicAppointmentFn = createServerFn({ method: "POST" })
       doctorName,
       department: data.department || doctor?.department || "General Medicine",
       date: data.date,
-      time: data.time?.trim() || "10:00 AM",
+      time: (() => {
+        if (data.time && data.time.trim()) return data.time.trim();
+        const sameDayAppts = db.appointments.filter(
+          (a) => a.doctorId === data.doctorId && a.date === data.date
+        );
+        if (sameDayAppts.length === 0) return "10:00 AM";
+        const maxMins = Math.max(...sameDayAppts.map((a) => parseTimeToMinutes(a.time)));
+        return formatMinutesToTime(maxMins + 30);
+      })(),
       status: "Pending",
       address: data.address,
       state: data.state,

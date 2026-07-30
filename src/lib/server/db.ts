@@ -802,7 +802,7 @@ async function persist() {
   if (!cache) return;
   try {
     const dir = dirname(DB_PATH);
-    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+    try { if (!existsSync(dir)) mkdirSync(dir, { recursive: true }); } catch(e) {}
     writeFileSync(DB_PATH, JSON.stringify(cache, null, 2), "utf-8");
   } catch {
     // In edge/serverless runtimes without a writable filesystem, we silently

@@ -543,7 +543,7 @@ export const lookupAppointmentStatusFn = createServerFn({ method: "POST" })
       const tokenIndex = sameDayDoctorAppts.findIndex((x) => x.id === a.id);
       const calculatedTokenNo = tokenIndex >= 0 ? tokenIndex + 1 : idx + 1;
       const formattedToken = String(calculatedTokenNo).padStart(2, "0");
-      const dateClean = a.date.replace(/-/g, "");
+      const dateClean = (a.date || "").replace(/-/g, "");
 
       return {
         ...a,

@@ -12,6 +12,9 @@ export default defineConfig({
   },
   nitro: {
     preset: "vercel",
+    externals: {
+      external: ["mongoose", "mongodb", "bson"],
+    },
     rollupConfig: {
       output: {
         inlineDynamicImports: true,

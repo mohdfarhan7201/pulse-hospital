@@ -15,10 +15,21 @@ export default defineConfig({
     externals: {
       external: ["mongoose", "mongodb", "bson"],
     },
-    rollupConfig: {
-      output: {
-        inlineDynamicImports: true,
-      },
+  },
+  vite: {
+    ssr: {
+      noExternal: [
+        /^@radix-ui\//,
+        /^@floating-ui\//,
+        /^@tanstack\//,
+        "lucide-react",
+        "recharts",
+        "clsx",
+        "tailwind-merge",
+        "prop-types",
+        "date-fns",
+        "react-day-picker",
+      ],
     },
   },
 });

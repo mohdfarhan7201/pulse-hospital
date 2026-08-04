@@ -1445,6 +1445,7 @@ function Contact() {
 
   const hospitalName = settings?.hospitalName || "Pulse Heart Centre";
   const helplinePhone = settings?.helplinePhone || "+91 98765 43210";
+  const secondaryPhone = settings?.secondaryPhone || "";
   const contactEmail = settings?.contactEmail || "care@pulseheart.in";
   const address = settings?.address || "Infront of Gangotri Nursing School Awas Vikas Colony, Betiahata, Gorakhpur, UP 273001";
 
@@ -1575,6 +1576,17 @@ function Contact() {
                   <div className="mt-1 font-display text-lg font-bold text-foreground">{helplinePhone}</div>
                 </a>
               </div>
+              {secondaryPhone && (
+                <div className="contact-anim">
+                  <a href={`tel:${secondaryPhone.replace(/\s+/g, "")}`} className="group flex h-full flex-col items-center justify-center rounded-3xl border border-border bg-white p-6 text-center shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-[oklch(0.62_0.15_210)]/10">
+                    <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[oklch(0.62_0.15_210)]/10 text-[oklch(0.62_0.15_210)] transition-transform group-hover:scale-110">
+                      <Phone className="h-6 w-6" />
+                    </div>
+                    <div className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Secondary Phone</div>
+                    <div className="mt-1 font-display text-lg font-bold text-foreground">{secondaryPhone}</div>
+                  </a>
+                </div>
+              )}
               <div className="contact-anim">
                 <a href={`mailto:${contactEmail}`} className="group flex h-full flex-col items-center justify-center rounded-3xl border border-border bg-white p-6 text-center shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-[oklch(0.4_0.18_265)]/10">
                   <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[oklch(0.4_0.18_265)]/10 text-[oklch(0.4_0.18_265)] transition-transform group-hover:scale-110">
@@ -1606,6 +1618,7 @@ function Footer() {
   const hospitalName = settings?.hospitalName || "Pulse Heart Centre";
   const tagline = settings?.tagline || "Setting a new standard in cardiovascular care. We combine cutting-edge technology with compassionate expertise to save lives.";
   const helplinePhone = settings?.helplinePhone || "+91 98765 43210";
+  const secondaryPhone = settings?.secondaryPhone || "";
   const contactEmail = settings?.contactEmail || "care@pulseheart.in";
   const address = settings?.address || "Infront of Gangotri Nursing School Awas Vikas Colony, Betiahata, Gorakhpur, UP 273001";
 
@@ -1714,6 +1727,14 @@ function Footer() {
                     <span>{helplinePhone}</span>
                   </a>
                 </li>
+                {secondaryPhone && (
+                  <li>
+                    <a href={`tel:${secondaryPhone.replace(/\s+/g, "")}`} className="group flex items-start gap-3 text-base text-white/60 transition-colors hover:text-white">
+                      <Phone className="mt-1 h-5 w-5 shrink-0 text-[oklch(0.62_0.15_210)]" />
+                      <span>{secondaryPhone}</span>
+                    </a>
+                  </li>
+                )}
                 <li>
                   <a href={`mailto:${contactEmail}`} className="group flex items-start gap-3 text-base text-white/60 transition-colors hover:text-white">
                     <Mail className="mt-1 h-5 w-5 shrink-0 text-[oklch(0.62_0.15_210)]" />

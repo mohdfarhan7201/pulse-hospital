@@ -43,6 +43,7 @@ function SettingsPage() {
   const [tagline, setTagline] = useState("Advanced Cardiac Care & Multi-specialty Hospital");
   const [contactEmail, setContactEmail] = useState("info@pulseheartcentre.com");
   const [helplinePhone, setHelplinePhone] = useState("+91 98765 43210");
+  const [secondaryPhone, setSecondaryPhone] = useState("");
   const [address, setAddress] = useState("Station Road, Near Golghar, Gorakhpur, UP 273001");
   const [opdHours, setOpdHours] = useState("Mon - Sat: 8:00 AM - 8:00 PM | Sun: Emergency Only");
 
@@ -72,6 +73,7 @@ function SettingsPage() {
       setTagline(settings.tagline || "");
       setContactEmail(settings.contactEmail || "");
       setHelplinePhone(settings.helplinePhone || "");
+      setSecondaryPhone(settings.secondaryPhone || "");
       setAddress(settings.address || "");
       setOpdHours(settings.opdHours || "");
       setNormalFee(settings.normalFee ?? 500);
@@ -101,6 +103,7 @@ function SettingsPage() {
       tagline,
       contactEmail,
       helplinePhone,
+      secondaryPhone,
       address,
       opdHours,
       normalFee: Number(normalFee),
@@ -191,6 +194,17 @@ function SettingsPage() {
                     id="hphone"
                     value={helplinePhone}
                     onChange={(e) => setHelplinePhone(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="sphone" className="flex items-center gap-1.5">
+                    <Phone className="h-3.5 w-3.5 text-muted-foreground" /> Secondary / Footer Phone
+                  </Label>
+                  <Input
+                    id="sphone"
+                    value={secondaryPhone}
+                    onChange={(e) => setSecondaryPhone(e.target.value)}
+                    placeholder="E.g. +91 98765 00000"
                   />
                 </div>
               </div>

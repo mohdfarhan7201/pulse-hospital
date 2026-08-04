@@ -660,6 +660,7 @@ export const getHospitalSettingsFn = createServerFn({ method: "GET" }).handler(a
       tagline: "Advanced Cardiac Care & Multi-specialty Hospital",
       contactEmail: "info@pulseheartcentre.com",
       helplinePhone: "+91 98765 43210",
+      secondaryPhone: "",
       address: "Station Road, Near Golghar, Gorakhpur, UP 273001",
       opdHours: "Mon - Sat: 8:00 AM - 8:00 PM | Sun: Emergency Only",
       normalFee: 500,
@@ -677,6 +678,7 @@ export const updateHospitalSettingsFn = createServerFn({ method: "POST" })
       tagline?: string;
       contactEmail?: string;
       helplinePhone?: string;
+      secondaryPhone?: string;
       address?: string;
       opdHours?: string;
       normalFee?: number;
@@ -693,6 +695,7 @@ export const updateHospitalSettingsFn = createServerFn({ method: "POST" })
       tagline: data.tagline !== undefined ? data.tagline : (db.settings?.tagline ?? ""),
       contactEmail: data.contactEmail !== undefined ? data.contactEmail : (db.settings?.contactEmail ?? ""),
       helplinePhone: data.helplinePhone !== undefined ? data.helplinePhone : (db.settings?.helplinePhone ?? ""),
+      secondaryPhone: data.secondaryPhone !== undefined ? data.secondaryPhone : (db.settings?.secondaryPhone ?? ""),
       address: data.address !== undefined ? data.address : (db.settings?.address ?? ""),
       opdHours: data.opdHours !== undefined ? data.opdHours : (db.settings?.opdHours ?? ""),
       normalFee: data.normalFee !== undefined ? Number(data.normalFee) : (db.settings?.normalFee ?? 500),

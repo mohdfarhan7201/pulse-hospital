@@ -116,6 +116,7 @@ export interface HospitalSettingsRecord {
   tagline: string;
   contactEmail: string;
   helplinePhone: string;
+  secondaryPhone?: string;
   address: string;
   opdHours: string;
   normalFee: number;
@@ -751,6 +752,7 @@ async function loadCacheFromMongo() {
         tagline: settingsDocs[0].tagline,
         contactEmail: settingsDocs[0].contactEmail,
         helplinePhone: settingsDocs[0].helplinePhone,
+        secondaryPhone: settingsDocs[0].secondaryPhone,
         address: settingsDocs[0].address,
         opdHours: settingsDocs[0].opdHours,
         normalFee: settingsDocs[0].normalFee,

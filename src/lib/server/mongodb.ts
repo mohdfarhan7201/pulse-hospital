@@ -150,6 +150,7 @@ const SettingsSchema = new mongoose.Schema({
   tagline: { type: String },
   contactEmail: { type: String },
   helplinePhone: { type: String },
+  secondaryPhone: { type: String },
   address: { type: String },
   opdHours: { type: String },
   normalFee: { type: Number },

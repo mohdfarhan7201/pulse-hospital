@@ -7,12 +7,12 @@ import { AppointmentModal } from "@/components/site/AppointmentModal";
 import { getHospitalSettingsFn } from "@/lib/api";
 
 const links = [
-  { href: "#about", label: "About" },
-  { href: "#services", label: "Services" },
-  { href: "#technology", label: "Technology" },
-  { href: "#doctors", label: "Doctors" },
-  { href: "#stories", label: "Stories" },
-  { href: "#contact", label: "Contact" },
+  { href: "/#about", label: "About" },
+  { href: "/#services", label: "Services" },
+  { href: "/#technology", label: "Technology" },
+  { href: "/#doctors", label: "Doctors" },
+  { href: "/#stories", label: "Stories" },
+  { href: "/#contact", label: "Contact" },
 ];
 
 export function Navbar() {

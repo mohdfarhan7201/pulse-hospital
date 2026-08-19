@@ -31,12 +31,13 @@ export function Footer() {
   const address = settings?.address || "Infront of Gangotri Nursing School Awas Vikas Colony, Betiahata, Gorakhpur, UP 273001";
 
   useEffect(() => {
+    if (window.matchMedia("(max-width: 768px)").matches) return;
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: containerRef.current,
-          start: "top 85%",
-          toggleActions: "play reverse play reverse",
+          start: "top 95%",
+          once: true,
         }
       });
 
@@ -142,21 +143,21 @@ export function Footer() {
                 <li>
                   <a href={`tel:${helplinePhone.replace(/\s+/g, "")}`} className="group flex items-start gap-3 text-base text-white/60 transition-colors hover:text-white">
                     <Phone className="mt-1 h-5 w-5 shrink-0 text-[oklch(0.62_0.15_210)]" />
-                    <span>{helplinePhone}</span>
+                    <span className="whitespace-nowrap">{helplinePhone}</span>
                   </a>
                 </li>
                 {secondaryPhone && (
                   <li>
                     <a href={`tel:${secondaryPhone.replace(/\s+/g, "")}`} className="group flex items-start gap-3 text-base text-white/60 transition-colors hover:text-white">
                       <Phone className="mt-1 h-5 w-5 shrink-0 text-[oklch(0.62_0.15_210)]" />
-                      <span>{secondaryPhone}</span>
+                      <span className="whitespace-nowrap">{secondaryPhone}</span>
                     </a>
                   </li>
                 )}
                 <li>
                   <a href={`mailto:${contactEmail}`} className="group flex items-start gap-3 text-base text-white/60 transition-colors hover:text-white">
                     <Mail className="mt-1 h-5 w-5 shrink-0 text-[oklch(0.62_0.15_210)]" />
-                    <span>{contactEmail}</span>
+                    <span className="whitespace-nowrap">{contactEmail}</span>
                   </a>
                 </li>
                 <li>

@@ -33,6 +33,11 @@ export function Reveal({
     const el = ref.current;
     if (!el) return;
 
+    if (window.matchMedia("(max-width: 768px)").matches) {
+      gsap.set(el, { clearProps: "all" });
+      return;
+    }
+
     const fromVars: gsap.TweenVars = {
       opacity: 0,
       duration: 1,
@@ -76,7 +81,7 @@ export function Reveal({
           stagger: stagger / 1000,
           scrollTrigger: {
             trigger: el,
-            start: "top 85%",
+            start: "top 95%",
             once: true,
           },
         });
@@ -88,7 +93,7 @@ export function Reveal({
       ...fromVars,
       scrollTrigger: {
         trigger: el,
-        start: "top 85%",
+        start: "top 95%",
         once: true,
       },
     });

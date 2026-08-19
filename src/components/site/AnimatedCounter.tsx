@@ -32,9 +32,9 @@ export function AnimatedCounter({
       val: value,
       duration,
       ease: "power2.out",
-      scrollTrigger: {
+      scrollTrigger: window.matchMedia("(max-width: 768px)").matches ? undefined : {
         trigger: el,
-        start: "top 90%",
+        start: "top 95%",
         once: true,
       },
       onUpdate: () => {

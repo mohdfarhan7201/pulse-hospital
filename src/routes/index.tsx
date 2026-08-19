@@ -137,7 +137,8 @@ function Hero() {
   const cardsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
+    if (window.matchMedia("(max-width: 768px)").matches) return;
+      const ctx = gsap.context(() => {
       const section = sectionRef.current;
       const inner = innerRef.current;
       const bg = bgRef.current;
@@ -334,7 +335,8 @@ function TrustBar() {
   const barRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
+    if (window.matchMedia("(max-width: 768px)").matches) return;
+      const ctx = gsap.context(() => {
       if (!barRef.current) return;
       const children = barRef.current.children;
       gsap.from(children, {
@@ -345,8 +347,8 @@ function TrustBar() {
         ease: "power3.out",
         scrollTrigger: {
           trigger: barRef.current,
-          start: "top 90%",
-          toggleActions: "play reverse play reverse",
+          start: "top 95%",
+          once: true,
         },
       });
     });
@@ -374,7 +376,8 @@ function About() {
   const imgRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
+    if (window.matchMedia("(max-width: 768px)").matches) return;
+      const ctx = gsap.context(() => {
       if (!imgRef.current) return;
       gsap.from(imgRef.current, {
         scale: 0.85,
@@ -385,8 +388,8 @@ function About() {
         ease: "power3.out",
         scrollTrigger: {
           trigger: imgRef.current,
-          start: "top 80%",
-          toggleActions: "play reverse play reverse",
+          start: "top 95%",
+          once: true,
         },
       });
 
@@ -468,7 +471,8 @@ function Services() {
   const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
+    if (window.matchMedia("(max-width: 768px)").matches) return;
+      const ctx = gsap.context(() => {
       if (!gridRef.current) return;
       const cards = gridRef.current.querySelectorAll(".service-card");
       gsap.from(cards, {
@@ -482,8 +486,8 @@ function Services() {
         ease: "power3.out",
         scrollTrigger: {
           trigger: gridRef.current,
-          start: "top 80%",
-          toggleActions: "play reverse play reverse",
+          start: "top 95%",
+          once: true,
         },
       });
     });
@@ -539,7 +543,8 @@ function Technology() {
   const cardsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
+    if (window.matchMedia("(max-width: 768px)").matches) return;
+      const ctx = gsap.context(() => {
       if (!cardsRef.current) return;
       const cards = cardsRef.current.querySelectorAll(".tech-card");
       cards.forEach((card, i) => {
@@ -552,8 +557,8 @@ function Technology() {
           delay: i * 0.15,
           scrollTrigger: {
             trigger: card,
-            start: "top 85%",
-            toggleActions: "play reverse play reverse",
+            start: "top 95%",
+            once: true,
           },
         });
 
@@ -656,7 +661,8 @@ function Doctors() {
       : fallbackDocs;
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
+    if (window.matchMedia("(max-width: 768px)").matches) return;
+      const ctx = gsap.context(() => {
       if (!gridRef.current) return;
       const cards = gridRef.current.children;
       gsap.from(cards, {
@@ -668,8 +674,8 @@ function Doctors() {
         ease: "power3.out",
         scrollTrigger: {
           trigger: gridRef.current,
-          start: "top 80%",
-          toggleActions: "play reverse play reverse",
+          start: "top 95%",
+          once: true,
         },
       });
     });
@@ -728,7 +734,8 @@ function Journey() {
   const stepsRef = useRef<HTMLOListElement>(null);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
+    if (window.matchMedia("(max-width: 768px)").matches) return;
+      const ctx = gsap.context(() => {
       /* Vertical line draws on scroll */
       if (lineRef.current && sectionRef.current) {
         const length = lineRef.current.getTotalLength?.() || 500;
@@ -757,8 +764,8 @@ function Journey() {
             ease: "power3.out",
             scrollTrigger: {
               trigger: step,
-              start: "top 85%",
-              toggleActions: "play reverse play reverse",
+              start: "top 95%",
+              once: true,
             },
           });
         });
@@ -830,7 +837,8 @@ function Stats() {
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
+    if (window.matchMedia("(max-width: 768px)").matches) return;
+      const ctx = gsap.context(() => {
       if (!sectionRef.current) return;
       const items = sectionRef.current.querySelectorAll(".stat-item");
       gsap.from(items, {
@@ -841,8 +849,8 @@ function Stats() {
         ease: "power3.out",
         scrollTrigger: {
           trigger: sectionRef.current,
-          start: "top 80%",
-          toggleActions: "play reverse play reverse",
+          start: "top 95%",
+          once: true,
         },
       });
     });
@@ -881,7 +889,8 @@ function Testimonials() {
   const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
+    if (window.matchMedia("(max-width: 768px)").matches) return;
+      const ctx = gsap.context(() => {
       if (!gridRef.current) return;
       const cards = gridRef.current.children;
       gsap.from(cards, {
@@ -894,8 +903,8 @@ function Testimonials() {
         ease: "power3.out",
         scrollTrigger: {
           trigger: gridRef.current,
-          start: "top 80%",
-          toggleActions: "play reverse play reverse",
+          start: "top 95%",
+          once: true,
         },
       });
     });
@@ -1450,12 +1459,13 @@ function Contact() {
   const address = settings?.address || "Infront of Gangotri Nursing School Awas Vikas Colony, Betiahata, Gorakhpur, UP 273001";
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
+    if (window.matchMedia("(max-width: 768px)").matches) return;
+      const ctx = gsap.context(() => {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: containerRef.current,
-          start: "top 80%",
-          toggleActions: "play reverse play reverse",
+          start: "top 95%",
+          once: true,
         }
       });
 

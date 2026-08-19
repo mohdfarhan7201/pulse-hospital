@@ -130,6 +130,12 @@ function Home() {
    HERO — GSAP parallax + staggered text entry
    ═══════════════════════════════════════════════════ */
 function Hero() {
+  const { data: settings } = useQuery({
+    queryKey: ["hospital-settings"],
+    queryFn: getHospitalSettingsFn,
+  });
+  const helplinePhone = settings?.helplinePhone || "+91 98765 43210";
+
   const sectionRef = useRef<HTMLElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
   const bgRef = useRef<HTMLImageElement>(null);
@@ -287,7 +293,7 @@ function Hero() {
               <Ambulance className="h-4 w-4" /> Emergency 24×7
             </a>
             <a
-              href="tel:09891596102"
+              href={`tel:${helplinePhone.replace(/\s+/g, "")}`}
               className="btn-lux inline-flex items-center gap-2 rounded-full border border-white/20 px-6 py-3.5 text-sm font-semibold text-white/90 backdrop-blur hover:bg-white/10"
             >
               <Phone className="h-4 w-4" /> Call Now

@@ -135,6 +135,7 @@ function Hero() {
     queryFn: getHospitalSettingsFn,
   });
   const helplinePhone = settings?.helplinePhone || "+91 98765 43210";
+  const secondaryPhone = settings?.secondaryPhone || helplinePhone;
 
   const sectionRef = useRef<HTMLElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
@@ -287,13 +288,13 @@ function Hero() {
               </button>
             </AppointmentModal>
             <a
-              href="tel:112"
+              href={`tel:${helplinePhone.replace(/\s+/g, "")}`}
               className="btn-lux inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[oklch(0.55_0.22_20)] to-[oklch(0.65_0.19_30)] px-6 py-3.5 text-sm font-semibold text-white shadow-crimson"
             >
               <Ambulance className="h-4 w-4" /> Emergency 24×7
             </a>
             <a
-              href={`tel:${helplinePhone.replace(/\s+/g, "")}`}
+              href={`tel:${secondaryPhone.replace(/\s+/g, "")}`}
               className="btn-lux inline-flex items-center gap-2 rounded-full border border-white/20 px-6 py-3.5 text-sm font-semibold text-white/90 backdrop-blur hover:bg-white/10"
             >
               <Phone className="h-4 w-4" /> Call Now

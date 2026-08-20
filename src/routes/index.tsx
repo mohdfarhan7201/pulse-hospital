@@ -1546,6 +1546,18 @@ function Contact() {
                 <ArrowRight className="h-5 w-5" />
               </button>
             </form>
+
+            <div className="relative z-10 mt-10 flex items-center justify-between gap-4 rounded-2xl bg-[oklch(0.98_0.008_250)] p-6 border border-border">
+              <div>
+                <h4 className="font-display text-xl font-bold text-foreground">Rate Your Experience</h4>
+                <p className="mt-1 text-sm text-muted-foreground">We value your feedback. Scan or click to rate us on Google.</p>
+              </div>
+              <a href="https://shinereviewboost.vercel.app/r/pulse-heart-center-a29626" target="_blank" rel="noopener noreferrer" className="group shrink-0">
+                <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-white shadow-sm p-1.5 transition-all duration-300 group-hover:scale-105 group-hover:shadow-[0_0_20px_oklch(0.62_0.15_210_/_0.2)] border border-border">
+                  <img src={qrCode} alt="Rate Us" className="h-full w-full object-contain" />
+                </div>
+              </a>
+            </div>
           </div>
 
           {/* Map & Info Side (Right) */}
@@ -1612,15 +1624,6 @@ function Contact() {
                   </div>
                   <div className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Email Us</div>
                   <div className="mt-1 font-display text-lg font-bold text-foreground">{contactEmail}</div>
-                </a>
-              </div>
-              <div className="contact-anim sm:col-span-2">
-                <a href="https://shinereviewboost.vercel.app/r/pulse-heart-center-a29626" target="_blank" rel="noopener noreferrer" className="group flex h-full flex-col items-center justify-center rounded-3xl border border-border bg-white p-6 text-center shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-[oklch(0.62_0.15_210)]/10">
-                  <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-white shadow-md p-1 transition-transform group-hover:scale-110">
-                    <img src={qrCode} alt="Rate Us" className="h-full w-full object-contain" />
-                  </div>
-                  <div className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Google Review</div>
-                  <div className="mt-1 font-display text-lg font-bold text-foreground">Rate Us</div>
                 </a>
               </div>
             </div>

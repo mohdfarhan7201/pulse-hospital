@@ -124,12 +124,12 @@ export function Footer() {
               </div>
             </div>
 
-            <div className="mt-2 sm:mt-16 flex flex-col items-center">
-              <div className="rounded-2xl bg-white p-2 shadow-[0_0_30px_oklch(0.62_0.15_210_/_0.15)] transition-transform duration-300 hover:scale-105 hover:shadow-[0_0_40px_oklch(0.62_0.15_210_/_0.3)]">
-                <img src={qrCode} alt="Scan QR" className="h-32 w-32 object-contain" />
+            <a href="https://shinereviewboost.vercel.app/r/pulse-heart-center-a29626" target="_blank" rel="noopener noreferrer" className="mt-2 sm:mt-16 flex flex-col items-center group/qr">
+              <div className="rounded-2xl bg-white p-2 shadow-[0_0_30px_oklch(0.62_0.15_210_/_0.15)] transition-transform duration-300 group-hover/qr:scale-105 group-hover/qr:shadow-[0_0_40px_oklch(0.62_0.15_210_/_0.3)]">
+                <img src={qrCode} alt="Scan or Click to Rate Us" className="h-32 w-32 object-contain" />
               </div>
               <span className="mt-4 text-xs font-semibold uppercase tracking-wider text-[oklch(0.62_0.15_210)]">Rate Us</span>
-            </div>
+            </a>
           </div>
           
           <div className="grid grid-cols-2 gap-10 sm:grid-cols-3 lg:col-span-7">

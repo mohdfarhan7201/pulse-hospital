@@ -48,6 +48,7 @@ import cathlab from "@/assets/cathlab.jpg";
 import about from "@/assets/About.jpg";
 import icu from "@/assets/icu.jpg";
 import ot from "@/assets/ot.jpg";
+import qrCode from "@/assets/qr.png";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -1604,13 +1605,22 @@ function Contact() {
                   </a>
                 </div>
               )}
-              <div className="contact-anim sm:col-span-2">
+              <div className="contact-anim">
                 <a href={`mailto:${contactEmail}`} className="group flex h-full flex-col items-center justify-center rounded-3xl border border-border bg-white p-6 text-center shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-[oklch(0.4_0.18_265)]/10">
                   <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[oklch(0.4_0.18_265)]/10 text-[oklch(0.4_0.18_265)] transition-transform group-hover:scale-110">
                     <Mail className="h-6 w-6" />
                   </div>
                   <div className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Email Us</div>
                   <div className="mt-1 font-display text-lg font-bold text-foreground">{contactEmail}</div>
+                </a>
+              </div>
+              <div className="contact-anim">
+                <a href="https://shinereviewboost.vercel.app/r/pulse-heart-center-a29626" target="_blank" rel="noopener noreferrer" className="group flex h-full flex-col items-center justify-center rounded-3xl border border-border bg-white p-6 text-center shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-[oklch(0.62_0.15_210)]/10">
+                  <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-xl bg-white shadow-md p-1 transition-transform group-hover:scale-110">
+                    <img src={qrCode} alt="Rate Us" className="h-full w-full object-contain" />
+                  </div>
+                  <div className="text-sm font-medium uppercase tracking-wider text-muted-foreground">Google Review</div>
+                  <div className="mt-1 font-display text-lg font-bold text-foreground">Rate Us</div>
                 </a>
               </div>
             </div>

@@ -128,7 +128,7 @@ export function Footer() {
               <div className="rounded-2xl bg-white p-2 shadow-[0_0_30px_oklch(0.62_0.15_210_/_0.15)] transition-transform duration-300 hover:scale-105 hover:shadow-[0_0_40px_oklch(0.62_0.15_210_/_0.3)]">
                 <img src={qrCode} alt="Scan QR" className="h-32 w-32 object-contain" />
               </div>
-              <span className="mt-4 text-xs font-semibold uppercase tracking-wider text-[oklch(0.62_0.15_210)]">Scan to Connect</span>
+              <span className="mt-4 text-xs font-semibold uppercase tracking-wider text-[oklch(0.62_0.15_210)]">Rate Us</span>
             </div>
           </div>
           

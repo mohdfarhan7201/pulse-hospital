@@ -5,6 +5,7 @@ import { gsap } from "gsap";
 import { getHospitalSettingsFn } from "@/lib/api";
 import { AppointmentModal } from "@/components/site/AppointmentModal";
 import logo1 from "@/assets/logo1.png";
+import qrCode from "@/assets/qr.png";
 import {
   ArrowRight,
   Facebook,
@@ -99,26 +100,35 @@ export function Footer() {
         <div className="grid gap-16 lg:grid-cols-12">
           
           {/* Brand Col */}
-          <div className="lg:col-span-5">
-            <div className="flex items-center gap-4 text-white">
-              <span className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-3xl border border-white/10 bg-white/5 text-[oklch(0.62_0.15_210)] shadow-inner backdrop-blur-xl">
-                <img src={logo1} alt={`${hospitalName} Logo`} className="h-full w-full object-contain p-2" />
-              </span>
-              <span className="font-display text-4xl font-bold tracking-tight">{hospitalName}</span>
+          <div className="lg:col-span-5 flex flex-col sm:flex-row items-start gap-8">
+            <div>
+              <div className="flex items-center gap-4 text-white">
+                <span className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-3xl border border-white/10 bg-white/5 text-[oklch(0.62_0.15_210)] shadow-inner backdrop-blur-xl">
+                  <img src={logo1} alt={`${hospitalName} Logo`} className="h-full w-full object-contain p-2" />
+                </span>
+                <span className="font-display text-4xl font-bold tracking-tight">{hospitalName}</span>
+              </div>
+              <p className="mt-8 max-w-sm text-lg leading-relaxed text-white/50">
+                {tagline}
+              </p>
+              
+              <div className="mt-10 flex gap-4">
+                {[
+                  { icon: Facebook, label: "Facebook", href: "https://www.facebook.com/profile.php?id=61592479897393" },
+                  { icon: Instagram, label: "Instagram", href: "https://www.instagram.com/pulse_heartcentre/" },
+                ].map((social) => (
+                  <a key={social.label} href={social.href} target="_blank" rel="noopener noreferrer" aria-label={social.label} className="group flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white/50 transition-all duration-300 hover:-translate-y-2 hover:border-[oklch(0.62_0.15_210)]/50 hover:bg-[oklch(0.62_0.15_210)]/10 hover:text-[oklch(0.62_0.15_210)] hover:shadow-[0_10px_20px_oklch(0.62_0.15_210_/_0.2)]">
+                    <social.icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                  </a>
+                ))}
+              </div>
             </div>
-            <p className="mt-8 max-w-sm text-lg leading-relaxed text-white/50">
-              {tagline}
-            </p>
-            
-            <div className="mt-10 flex gap-4">
-              {[
-                { icon: Facebook, label: "Facebook", href: "https://www.facebook.com/profile.php?id=61592479897393" },
-                { icon: Instagram, label: "Instagram", href: "https://www.instagram.com/pulse_heartcentre/" },
-              ].map((social) => (
-                <a key={social.label} href={social.href} target="_blank" rel="noopener noreferrer" aria-label={social.label} className="group flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white/50 transition-all duration-300 hover:-translate-y-2 hover:border-[oklch(0.62_0.15_210)]/50 hover:bg-[oklch(0.62_0.15_210)]/10 hover:text-[oklch(0.62_0.15_210)] hover:shadow-[0_10px_20px_oklch(0.62_0.15_210_/_0.2)]">
-                  <social.icon className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
-                </a>
-              ))}
+
+            <div className="mt-2 sm:mt-16 flex flex-col items-center">
+              <div className="rounded-2xl bg-white p-2 shadow-[0_0_30px_oklch(0.62_0.15_210_/_0.15)] transition-transform duration-300 hover:scale-105 hover:shadow-[0_0_40px_oklch(0.62_0.15_210_/_0.3)]">
+                <img src={qrCode} alt="Scan QR" className="h-32 w-32 object-contain" />
+              </div>
+              <span className="mt-4 text-xs font-semibold uppercase tracking-wider text-[oklch(0.62_0.15_210)]">Scan to Connect</span>
             </div>
           </div>
           

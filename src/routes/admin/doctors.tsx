@@ -266,7 +266,7 @@ function DoctorFormFields({
       {/* Bio — full width */}
       <div className="col-span-2 space-y-1.5">
         <Label>
-          Bio{" "}
+          Degree & Qualification{" "}
           <span className="text-xs font-normal text-muted-foreground">(shown on hospital website)</span>
         </Label>
         <Textarea

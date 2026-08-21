@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Briefcase, Building2, Mail, Phone, Users } from "lucide-react";
 
 import { getMyProfileFn } from "@/lib/api";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 
@@ -31,6 +31,7 @@ function ProfilePage() {
         <Card className="max-w-2xl p-6">
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16 border">
+              {doctor.photoUrl && <AvatarImage src={doctor.photoUrl} alt={doctor.name} className="object-cover" />}
               <AvatarFallback className="bg-primary/10 text-lg font-semibold text-primary">
                 {doctor.name
                   .replace(/^Dr\.?\s*/i, "")

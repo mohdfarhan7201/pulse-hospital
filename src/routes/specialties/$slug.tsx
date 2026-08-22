@@ -157,7 +157,7 @@ function SpecialtyPage() {
   const treatmentIcons = [Activity, Heart, Shield, Pill];
 
   return (
-    <main className="relative min-h-screen bg-background font-sans text-foreground selection:bg-primary selection:text-primary-foreground pb-32">
+    <main className="relative min-h-screen flex flex-col bg-background font-sans text-foreground selection:bg-primary selection:text-primary-foreground">
       <CursorGlow />
       <Navbar />
       
@@ -263,7 +263,7 @@ function SpecialtyPage() {
         </div>
       </section>
 
-      <div className="relative z-20">
+      <div className="relative z-20 mt-auto">
         <Footer />
       </div>
     </main>

@@ -40,7 +40,7 @@ import { AnimatedCounter } from "@/components/site/AnimatedCounter";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AppointmentStatus } from "@/components/site/AppointmentStatus";
 
-import hero from "@/assets/hero.jpg";
+import heroVideo from "@/assets/PULSE BG.mp4";
 import doc1 from "@/assets/doctor-1.jpg";
 import doc2 from "@/assets/doctor-2.jpg";
 import doc3 from "@/assets/doctor-3.jpg";
@@ -140,7 +140,7 @@ function Hero() {
 
   const sectionRef = useRef<HTMLElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
-  const bgRef = useRef<HTMLImageElement>(null);
+  const bgRef = useRef<HTMLVideoElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
 
@@ -220,16 +220,17 @@ function Hero() {
         className="relative isolate flex min-h-screen items-end overflow-hidden pt-32 pb-16 text-white"
         style={{
           background:
-            "radial-gradient(ellipse at 20% 10%, oklch(0.35 0.16 265 / 0.9), transparent 60%), radial-gradient(ellipse at 80% 30%, oklch(0.6 0.16 210 / 0.55), transparent 60%), radial-gradient(ellipse at 60% 90%, oklch(0.55 0.22 20 / 0.35), transparent 60%), linear-gradient(180deg, oklch(0.14 0.05 265), oklch(0.1 0.04 265))",
+            "radial-gradient(ellipse at 20% 10%, oklch(0.35 0.16 265 / 0.4), transparent 60%), radial-gradient(ellipse at 80% 30%, oklch(0.6 0.16 210 / 0.2), transparent 60%), radial-gradient(ellipse at 60% 90%, oklch(0.55 0.22 20 / 0.15), transparent 60%), linear-gradient(180deg, oklch(0.12 0.03 265), oklch(0.08 0.02 265))",
         }}
       >
-      {/* bg image with parallax */}
-      <img
+      {/* bg video with parallax */}
+      <video
         ref={bgRef}
-        src={hero}
-        alt=""
-        width={1920}
-        height={1280}
+        src={heroVideo}
+        autoPlay
+        loop
+        muted
+        playsInline
         className="absolute inset-0 h-full w-full object-cover opacity-30 mix-blend-screen"
         style={{ willChange: "transform" }}
       />

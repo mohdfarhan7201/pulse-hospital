@@ -3,10 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Bell,
   CalendarDays,
+  FileBarChart2,
   LayoutDashboard,
+  Receipt,
   Settings,
   User,
   Users,
+  BookOpen,
 } from "lucide-react";
 
 import { getSessionFn } from "@/lib/auth";
@@ -16,7 +19,11 @@ import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardSh
 const NAV_ITEMS: NavItem[] = [
   { to: "/doctor", label: "Dashboard", icon: <LayoutDashboard /> },
   { to: "/doctor/appointments", label: "My Appointments", icon: <CalendarDays /> },
+  { to: "/doctor/patients", label: "Patients", icon: <Users /> },
+  { to: "/doctor/billing", label: "Billing", icon: <Receipt /> },
+  { to: "/doctor/reports", label: "Reports", icon: <FileBarChart2 /> },
   { to: "/doctor/notifications", label: "Notifications", icon: <Bell /> },
+  { to: "/doctor/blogs", label: "Blogs", icon: <BookOpen /> },
   { to: "/doctor/profile", label: "Profile", icon: <User /> },
   { to: "/doctor/settings", label: "Settings", icon: <Settings /> },
 ];
@@ -25,7 +32,10 @@ const TITLES: Record<string, string> = {
   "/doctor": "Doctor Dashboard",
   "/doctor/appointments": "My Appointments",
   "/doctor/patients": "Patients",
+  "/doctor/billing": "Billing & Payments",
+  "/doctor/reports": "Reports",
   "/doctor/notifications": "Notifications",
+  "/doctor/blogs": "Blogs",
   "/doctor/profile": "Profile",
   "/doctor/settings": "Settings",
 };

@@ -508,7 +508,7 @@ function Services() {
     { icon: Activity, t: "Diagnostic Cardiology", d: "ECG, Echo, TMT, Holter and advanced non-invasive cardiac diagnostics.", href: "/specialties/diagnostic-cardiology" },
     { icon: Stethoscope, t: "Cardiac Surgery", d: "CABG, valve replacement and minimally invasive cardiac surgery.", href: "/specialties/cardiac-surgery" },
     { icon: Syringe, t: "Electrophysiology", d: "Pacemaker implants, ICDs and radiofrequency ablation for arrhythmias.", href: "/specialties/electrophysiology" },
-    { icon: Ambulance, t: "Emergency & Trauma", d: "24×7 chest-pain response with door-to-balloon protocols under 60 minutes.", href: "/specialties/emergency-and-trauma" },
+    { icon: Ambulance, t: "Emergency Services", d: "24×7 chest-pain response with door-to-balloon protocols under 60 minutes.", href: "/specialties/emergency" },
     { icon: Users, t: "Preventive Cardiology", d: "Cardiac wellness, lipid clinic and personalised heart-risk programs.", href: "/specialties/preventive-cardiology" },
   ];
   return (

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { CalendarDays, Users } from "lucide-react";
 
-import { getMyReportsFn } from "@/lib/api";
+import { getAdminReportsFn } from "@/lib/api";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { Card } from "@/components/ui/card";
 
@@ -13,8 +13,8 @@ export const Route = createFileRoute("/doctor/reports")({
 function MyReportsPage() {
   const { data, isLoading } = useQuery({
     refetchInterval: 5000,
-    queryKey: ["my-reports"],
-    queryFn: () => getMyReportsFn(),
+    queryKey: ["reports"],
+    queryFn: () => getAdminReportsFn(),
   });
 
   return (

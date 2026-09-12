@@ -103,14 +103,14 @@ const specialtiesData: Record<string, any> = {
     image: "https://images.unsplash.com/photo-1516549655169-df83a0774514?q=80&w=2000&auto=format&fit=crop",
     mainIcon: Microscope
   },
-  "emergency-and-trauma": {
-    title: "Emergency & Trauma",
+  "emergency": {
+    title: "Emergency Services",
     description: "Rapid-response cardiac emergency care available 24/7. We specialize in immediate interventions for acute heart attacks and other critical conditions.",
     treatments: [
       { name: "Primary Angioplasty", desc: "Immediate catheter-based treatment for acute myocardial infarction." },
       { name: "Resuscitation & Defibrillation", desc: "Advanced life support and rhythm restoration." },
       { name: "Emergency Pacing", desc: "Temporary pacemaker insertion for severe bradycardia." },
-      { name: "Trauma Surgery", desc: "Surgical intervention for chest trauma affecting the heart." }
+      { name: "Emergency Surgery", desc: "Surgical intervention for acute emergencies affecting the heart." }
     ],
     expertise: "With a door-to-balloon time well below the national standard of 60 minutes, our emergency team is always ready to save lives when every second counts.",
     image: "https://images.unsplash.com/photo-1587559070757-f72a388edb55?q=80&w=2000&auto=format&fit=crop",

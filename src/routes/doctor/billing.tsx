@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-export const Route = createFileRoute("/admin/billing")({
+export const Route = createFileRoute("/doctor/billing")({
   component: BillingPage,
 });
 

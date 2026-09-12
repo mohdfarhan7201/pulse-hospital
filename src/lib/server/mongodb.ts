@@ -159,6 +159,16 @@ const SettingsSchema = new mongoose.Schema({
   upiName: { type: String },
 }, { timestamps: true });
 
+const BlogSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true },
+  title: { type: String, required: true },
+  content: { type: String, required: true },
+  imageUrl: { type: String },
+  videoUrl: { type: String },
+  createdAt: { type: String, required: true },
+  authorId: { type: String, required: true },
+}, { timestamps: true });
+
 export const UserModel = mongoose.models.User || mongoose.model("User", UserSchema);
 export const DoctorModel = mongoose.models.Doctor || mongoose.model("Doctor", DoctorSchema);
 export const PatientModel = mongoose.models.Patient || mongoose.model("Patient", PatientSchema);
@@ -167,3 +177,4 @@ export const InvoiceModel = mongoose.models.Invoice || mongoose.model("Invoice",
 export const NotificationModel = mongoose.models.Notification || mongoose.model("Notification", NotificationSchema);
 export const SessionModel = mongoose.models.Session || mongoose.model("Session", SessionSchema);
 export const SettingsModel = mongoose.models.Settings || mongoose.model("Settings", SettingsSchema);
+export const BlogModel = mongoose.models.Blog || mongoose.model("Blog", BlogSchema);

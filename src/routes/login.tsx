@@ -20,25 +20,20 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
-type RoleTab = "admin" | "doctor";
+type RoleTab = "doctor";
 
 function LoginPage() {
   const { currentUser } = Route.useRouteContext();
   const navigate = useNavigate();
-  const [role, setRole] = useState<RoleTab>("admin");
+  const [role] = useState<RoleTab>("doctor");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const fillDemo = () => {
-    if (role === "admin") {
-      setEmail("admin@pulseheart.com");
-      setPassword("Admin@123");
-    } else {
-      setEmail("amit.verma@pulseheart.com");
-      setPassword("Doctor@123");
-    }
+    setEmail("doctor@pulseheart.com");
+    setPassword("Doctor@123");
   };
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -50,7 +45,7 @@ function LoginPage() {
       if (typeof window !== "undefined") {
         localStorage.setItem("pulse_user", JSON.stringify(user));
       }
-      await navigate({ to: user.role === "admin" ? "/admin" : "/doctor" });
+      await navigate({ to: "/doctor" });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
@@ -118,41 +113,15 @@ function LoginPage() {
               </p>
               <div className="mt-1.5 flex items-center gap-3">
                 <Link
-                  to={currentUser.role === "admin" ? "/admin" : "/doctor"}
+                  to="/doctor"
                   className="font-medium text-primary hover:underline"
                 >
-                  Go to {currentUser.role === "admin" ? "Admin" : "Doctor"} Dashboard →
+                  Go to Dashboard →
                 </Link>
               </div>
             </div>
           )}
 
-          <div className="mt-6 grid grid-cols-2 gap-2 rounded-xl bg-muted p-1">
-            <button
-              type="button"
-              onClick={() => setRole("admin")}
-              className={cn(
-                "flex items-center justify-center gap-2 rounded-lg py-2 text-sm font-semibold transition-colors",
-                role === "admin"
-                  ? "bg-card shadow text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <ShieldCheck className="h-4 w-4" /> Admin
-            </button>
-            <button
-              type="button"
-              onClick={() => setRole("doctor")}
-              className={cn(
-                "flex items-center justify-center gap-2 rounded-lg py-2 text-sm font-semibold transition-colors",
-                role === "doctor"
-                  ? "bg-card shadow text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <Stethoscope className="h-4 w-4" /> Doctor
-            </button>
-          </div>
 
           <form onSubmit={onSubmit} className="mt-6 space-y-4">
             <div className="space-y-1.5">
@@ -164,7 +133,7 @@ function LoginPage() {
                   type="email"
                   required
                   autoComplete="username"
-                  placeholder={role === "admin" ? "admin@pulseheart.com" : "doctor@pulseheart.com"}
+                  placeholder="doctor@pulseheart.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-9"
@@ -197,7 +166,7 @@ function LoginPage() {
 
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              Sign in as {role === "admin" ? "Admin" : "Doctor"}
+              Sign in
             </Button>
 
             <button

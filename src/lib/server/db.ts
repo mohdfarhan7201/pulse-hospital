@@ -21,7 +21,7 @@ import { dirname, join } from "node:path";
 // Types
 // ---------------------------------------------------------------------------
 
-export type Role = "admin" | "doctor";
+export type Role = "doctor";
 
 export interface UserRecord {
   id: string;
@@ -111,6 +111,16 @@ export interface SessionRecord {
   expiresAt: string;
 }
 
+export interface BlogRecord {
+  id: string;
+  title: string;
+  content: string;
+  imageUrl?: string;
+  videoUrl?: string;
+  createdAt: string;
+  authorId: string;
+}
+
 export interface HospitalSettingsRecord {
   hospitalName: string;
   tagline: string;
@@ -134,6 +144,7 @@ export interface DbShape {
   notifications: NotificationRecord[];
   sessions: Record<string, SessionRecord>;
   settings?: HospitalSettingsRecord;
+  blogs: BlogRecord[];
 }
 
 // ---------------------------------------------------------------------------
@@ -183,408 +194,37 @@ function seedDb(): DbShape {
 
   const doctors: DoctorRecord[] = [
     {
-      id: "doc-amit-verma",
-      name: "Dr. Amit Verma",
+      id: "doc-prakash",
+      name: "Dr. Prakash Chand Shahi",
       specialty: "Cardiologist",
       department: "Cardiology",
-      email: "amit.verma@pulseheart.com",
+      email: "doctor@pulseheart.com",
       phone: "+91 98765 10001",
-      experienceYears: 10,
+      experienceYears: 15,
       status: "Active",
-      joinedOn: "2016-03-01",
-    },
-    {
-      id: "doc-neha-gupta",
-      name: "Dr. Neha Gupta",
-      specialty: "Neurologist",
-      department: "Neurology",
-      email: "neha.gupta@pulseheart.com",
-      phone: "+91 98765 10002",
-      experienceYears: 8,
-      status: "Active",
-      joinedOn: "2018-06-15",
-    },
-    {
-      id: "doc-rohit-kumar",
-      name: "Dr. Rohit Kumar",
-      specialty: "Orthopedic Surgeon",
-      department: "Orthopedics",
-      email: "rohit.kumar@pulseheart.com",
-      phone: "+91 98765 10003",
-      experienceYears: 12,
-      status: "Active",
-      joinedOn: "2014-01-10",
-    },
-    {
-      id: "doc-pooja-sharma",
-      name: "Dr. Pooja Sharma",
-      specialty: "Pediatrician",
-      department: "Pediatrics",
-      email: "pooja.sharma@pulseheart.com",
-      phone: "+91 98765 10004",
-      experienceYears: 6,
-      status: "Active",
-      joinedOn: "2020-09-01",
-    },
-    {
-      id: "doc-arjun-mehta",
-      name: "Dr. Arjun Mehta",
-      specialty: "Cardiologist",
-      department: "Cardiology",
-      email: "arjun.mehta@pulseheart.com",
-      phone: "+91 98765 10005",
-      experienceYears: 9,
-      status: "Active",
-      joinedOn: "2017-11-20",
-    },
-    {
-      id: "doc-kavita-rao",
-      name: "Dr. Kavita Rao",
-      specialty: "General Physician",
-      department: "General Medicine",
-      email: "kavita.rao@pulseheart.com",
-      phone: "+91 98765 10006",
-      experienceYears: 5,
-      status: "On Leave",
-      joinedOn: "2021-02-14",
+      joinedOn: "2010-01-01",
     },
   ];
 
-  const patients: PatientRecord[] = [
-    {
-      id: "pat-rahul-sharma",
-      name: "Rahul Sharma",
-      age: 30,
-      gender: "Male",
-      phone: "+91 90000 00001",
-      email: "rahul.sharma@example.com",
-      department: "Cardiology",
-      primaryDoctorId: "doc-amit-verma",
-      lastVisit: daysAgo(2),
-      createdAt: daysAgo(120),
-    },
-    {
-      id: "pat-priya-singh",
-      name: "Priya Singh",
-      age: 28,
-      gender: "Female",
-      phone: "+91 90000 00002",
-      email: "priya.singh@example.com",
-      department: "Neurology",
-      primaryDoctorId: "doc-neha-gupta",
-      lastVisit: daysAgo(1),
-      createdAt: daysAgo(90),
-    },
-    {
-      id: "pat-vikram-patel",
-      name: "Vikram Patel",
-      age: 45,
-      gender: "Male",
-      phone: "+91 90000 00003",
-      email: "vikram.patel@example.com",
-      department: "Orthopedics",
-      primaryDoctorId: "doc-rohit-kumar",
-      lastVisit: daysAgo(5),
-      createdAt: daysAgo(200),
-    },
-    {
-      id: "pat-anjali-mehta",
-      name: "Anjali Mehta",
-      age: 32,
-      gender: "Female",
-      phone: "+91 90000 00004",
-      email: "anjali.mehta@example.com",
-      department: "Pediatrics",
-      primaryDoctorId: "doc-pooja-sharma",
-      lastVisit: daysAgo(3),
-      createdAt: daysAgo(60),
-    },
-    {
-      id: "pat-suresh-yadav",
-      name: "Suresh Yadav",
-      age: 50,
-      gender: "Male",
-      phone: "+91 90000 00005",
-      email: "suresh.yadav@example.com",
-      department: "Cardiology",
-      primaryDoctorId: "doc-amit-verma",
-      lastVisit: daysAgo(10),
-      createdAt: daysAgo(400),
-    },
-  ];
-
-  const appointments: AppointmentRecord[] = [
-    {
-      id: "apt-1",
-      patientId: "pat-rahul-sharma",
-      patientName: "Rahul Sharma",
-      age: 30,
-      gender: "Male",
-      doctorId: "doc-amit-verma",
-      doctorName: "Dr. Amit Verma",
-      department: "Cardiology",
-      date: iso(now),
-      time: "10:00 AM",
-      status: "Confirmed",
-      address: "Routine cardiac check-up",
-      state: "Uttar Pradesh",
-      country: "India",
-      createdAt: daysAgo(3),
-    },
-    {
-      id: "apt-2",
-      patientId: "pat-priya-singh",
-      patientName: "Priya Singh",
-      age: 28,
-      gender: "Female",
-      doctorId: "doc-neha-gupta",
-      doctorName: "Dr. Neha Gupta",
-      department: "Neurology",
-      date: iso(now),
-      time: "10:30 AM",
-      status: "Confirmed",
-      address: "Migraine follow-up",
-      state: "Uttar Pradesh",
-      country: "India",
-      createdAt: daysAgo(2),
-    },
-    {
-      id: "apt-3",
-      patientId: "pat-vikram-patel",
-      patientName: "Vikram Patel",
-      age: 45,
-      gender: "Male",
-      doctorId: "doc-amit-verma",
-      doctorName: "Dr. Amit Verma",
-      department: "Cardiology",
-      date: iso(now),
-      time: "11:00 AM",
-      status: "In Consultation",
-      address: "Chest pain evaluation",
-      state: "Uttar Pradesh",
-      country: "India",
-      createdAt: daysAgo(1),
-    },
-    {
-      id: "apt-4",
-      patientId: "pat-anjali-mehta",
-      patientName: "Anjali Mehta",
-      age: 32,
-      gender: "Female",
-      doctorId: "doc-amit-verma",
-      doctorName: "Dr. Amit Verma",
-      department: "Cardiology",
-      date: iso(now),
-      time: "11:30 AM",
-      status: "Waiting",
-      address: "ECG review",
-      state: "Uttar Pradesh",
-      country: "India",
-      createdAt: daysAgo(1),
-    },
-    {
-      id: "apt-5",
-      patientId: "pat-suresh-yadav",
-      patientName: "Suresh Yadav",
-      age: 50,
-      gender: "Male",
-      doctorId: "doc-amit-verma",
-      doctorName: "Dr. Amit Verma",
-      department: "Cardiology",
-      date: iso(now),
-      time: "12:00 PM",
-      status: "Pending",
-      address: "Post-surgery review",
-      state: "Uttar Pradesh",
-      country: "India",
-      createdAt: daysAgo(1),
-    },
-    {
-      id: "apt-6",
-      patientId: "pat-rahul-sharma",
-      patientName: "Rahul Sharma",
-      age: 30,
-      gender: "Male",
-      doctorId: "doc-rohit-kumar",
-      doctorName: "Dr. Rohit Kumar",
-      department: "Orthopedics",
-      date: daysAgo(1),
-      time: "01:00 PM",
-      status: "Completed",
-      address: "Knee pain",
-      state: "Uttar Pradesh",
-      country: "India",
-      createdAt: daysAgo(6),
-    },
-    {
-      id: "apt-7",
-      patientId: "pat-vikram-patel",
-      patientName: "Vikram Patel",
-      age: 45,
-      gender: "Male",
-      doctorId: "doc-pooja-sharma",
-      doctorName: "Dr. Pooja Sharma",
-      department: "Pediatrics",
-      date: daysAgo(1),
-      time: "02:30 PM",
-      status: "Confirmed",
-      address: "Consultation",
-      state: "Uttar Pradesh",
-      country: "India",
-      createdAt: daysAgo(4),
-    },
-    {
-      id: "apt-8",
-      patientId: "pat-suresh-yadav",
-      patientName: "Suresh Yadav",
-      age: 50,
-      gender: "Male",
-      doctorId: "doc-amit-verma",
-      doctorName: "Dr. Amit Verma",
-      department: "Cardiology",
-      date: daysAgo(1),
-      time: "04:00 PM",
-      status: "Cancelled",
-      address: "Follow-up",
-      state: "Uttar Pradesh",
-      country: "India",
-      createdAt: daysAgo(5),
-    },
-    {
-      id: "apt-9",
-      patientId: "pat-priya-singh",
-      patientName: "Priya Singh",
-      age: 28,
-      gender: "Female",
-      doctorId: "doc-amit-verma",
-      doctorName: "Dr. Amit Verma",
-      department: "Cardiology",
-      date: daysFromNow(1),
-      time: "09:30 AM",
-      status: "Confirmed",
-      address: "New patient consult",
-      state: "Uttar Pradesh",
-      country: "India",
-      createdAt: daysAgo(1),
-    },
-  ];
-
-  const invoices: InvoiceRecord[] = appointments
-    .filter((a) => a.status === "Completed" || a.status === "Confirmed")
-    .map((a, i) => ({
-      id: `inv-${i + 1}`,
-      patientId: a.patientId,
-      patientName: a.patientName,
-      appointmentId: a.id,
-      amount: 1000 + (i % 4) * 500,
-      status: i % 3 === 0 ? "Pending" : "Paid",
-      date: a.date,
-    }));
-
-  const notifications: NotificationRecord[] = [
-    {
-      id: "note-1",
-      audience: "admin",
-      message: "Dr. Kavita Rao requested leave for next week.",
-      createdAt: daysAgo(1),
-      read: false,
-    },
-    {
-      id: "note-2",
-      audience: "admin",
-      message: "New patient registration: Anjali Mehta.",
-      createdAt: daysAgo(2),
-      read: false,
-    },
-    {
-      id: "note-3",
-      audience: "doc-amit-verma",
-      message: "Suresh Yadav rescheduled his follow-up.",
-      createdAt: daysAgo(1),
-      read: false,
-    },
-    {
-      id: "note-4",
-      audience: "doc-amit-verma",
-      message: "Lab results are ready for Vikram Patel.",
-      createdAt: daysAgo(1),
-      read: false,
-    },
-    {
-      id: "note-5",
-      audience: "doc-amit-verma",
-      message: "You have 5 patients waiting today.",
-      createdAt: iso(now),
-      read: false,
-    },
-  ];
+  const patients: PatientRecord[] = [];
+  const appointments: AppointmentRecord[] = [];
+  const invoices: InvoiceRecord[] = [];
+  const notifications: NotificationRecord[] = [];
+  const blogs: BlogRecord[] = [];
 
   const users: UserRecord[] = [
     {
-      id: "user-admin",
-      name: "Super Admin",
-      email: "admin@pulseheart.com",
-      passwordHash: hashPassword("Admin@123"),
-      role: "admin",
-      avatarInitials: "SA",
-    },
-    {
-      id: "user-doc-amit-verma",
-      name: "Dr. Amit Verma",
-      email: "amit.verma@pulseheart.com",
+      id: "user-doc-prakash",
+      name: "Dr. Prakash Chand Shahi",
+      email: "doctor@pulseheart.com",
       passwordHash: hashPassword("Doctor@123"),
       role: "doctor",
-      doctorId: "doc-amit-verma",
-      avatarInitials: "AV",
-    },
-    {
-      id: "user-doc-neha-gupta",
-      name: "Dr. Neha Gupta",
-      email: "neha.gupta@pulseheart.com",
-      passwordHash: hashPassword("Doctor@123"),
-      role: "doctor",
-      doctorId: "doc-neha-gupta",
-      avatarInitials: "NG",
-    },
-    {
-      id: "user-doc-rohit-kumar",
-      name: "Dr. Rohit Kumar",
-      email: "rohit.kumar@pulseheart.com",
-      passwordHash: hashPassword("Doctor@123"),
-      role: "doctor",
-      doctorId: "doc-rohit-kumar",
-      avatarInitials: "RK",
-    },
-    {
-      id: "user-doc-pooja-sharma",
-      name: "Dr. Pooja Sharma",
-      email: "pooja.sharma@pulseheart.com",
-      passwordHash: hashPassword("Doctor@123"),
-      role: "doctor",
-      doctorId: "doc-pooja-sharma",
-      avatarInitials: "PS",
-    },
-    {
-      id: "user-doc-arjun-mehta",
-      name: "Dr. Arjun Mehta",
-      email: "arjun.mehta@pulseheart.com",
-      passwordHash: hashPassword("Doctor@123"),
-      role: "doctor",
-      doctorId: "doc-arjun-mehta",
-      avatarInitials: "AM",
-    },
-    {
-      id: "user-doc-kavita-rao",
-      name: "Dr. Kavita Rao",
-      email: "kavita.rao@pulseheart.com",
-      passwordHash: hashPassword("Doctor@123"),
-      role: "doctor",
-      doctorId: "doc-kavita-rao",
-      avatarInitials: "KR",
+      doctorId: "doc-prakash",
+      avatarInitials: "PC",
     },
   ];
 
-  return { users, doctors, patients, appointments, invoices, notifications, sessions: {} };
+  return { users, doctors, patients, appointments, invoices, notifications, sessions: {}, blogs };
 }
 
 import {
@@ -597,6 +237,7 @@ import {
   NotificationModel,
   SessionModel,
   SettingsModel,
+  BlogModel,
 } from "./mongodb";
 
 let isMongoConnecting = false;
@@ -634,6 +275,7 @@ async function saveCacheToMongo() {
       ...cache.appointments.map((a) => AppointmentModel.updateOne({ id: a.id }, a, { upsert: true })),
       ...cache.invoices.map((i) => InvoiceModel.updateOne({ id: i.id }, i, { upsert: true })),
       ...cache.notifications.map((n) => NotificationModel.updateOne({ id: n.id }, n, { upsert: true })),
+      ...cache.blogs.map((b) => BlogModel.updateOne({ id: b.id }, b, { upsert: true })),
       ...Object.entries(cache.sessions).map(([sessionId, s]) =>
         SessionModel.updateOne({ sessionId }, { sessionId, ...s }, { upsert: true })
       ),
@@ -657,7 +299,7 @@ async function saveCacheToMongo() {
 
 async function loadCacheFromMongo() {
   try {
-    const [users, doctors, patients, appointments, invoices, notifications, sessionsDocs, settingsDocs] = await Promise.all([
+    const [users, doctors, patients, appointments, invoices, notifications, sessionsDocs, settingsDocs, blogs] = await Promise.all([
       UserModel.find({}).lean(),
       DoctorModel.find({}).lean(),
       PatientModel.find({}).lean(),
@@ -666,6 +308,7 @@ async function loadCacheFromMongo() {
       NotificationModel.find({}).lean(),
       SessionModel.find({}).lean(),
       SettingsModel.find({}).lean(),
+      BlogModel.find({}).lean(),
     ]);
 
     const sessions: Record<string, SessionRecord> = {};
@@ -746,6 +389,15 @@ async function loadCacheFromMongo() {
         createdAt: n.createdAt,
         read: n.read,
       })),
+      blogs: blogs.map((b: any) => ({
+        id: b.id,
+        title: b.title,
+        content: b.content,
+        imageUrl: b.imageUrl,
+        videoUrl: b.videoUrl,
+        createdAt: b.createdAt,
+        authorId: b.authorId,
+      })),
       sessions,
       settings: settingsDocs.length > 0 ? {
         hospitalName: settingsDocs[0].hospitalName,
@@ -792,7 +444,7 @@ async function load(): Promise<DbShape> {
   // will wipe out the user's view in production. Only seed if we actually intend to use local file.
   if (process.env.MONGODB_URI) {
     console.warn("[MongoDB] Returning empty fallback cache instead of hardcoded seed, as MongoDB is configured.");
-    return { users: [], doctors: [], patients: [], appointments: [], invoices: [], notifications: [], sessions: {} };
+    return { users: [], doctors: [], patients: [], appointments: [], invoices: [], notifications: [], sessions: {}, blogs: [] };
   }
 
   cache = seedDb();

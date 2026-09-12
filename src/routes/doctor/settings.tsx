@@ -4,21 +4,27 @@ import { updateDoctorProfileFn, getMyProfileFn } from "@/lib/api";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import {
+  Building2,
   CheckCircle2,
   Eye,
   EyeOff,
+  Globe,
   Lock,
   Mail,
   Phone,
+  ReceiptIndianRupee,
   Save,
   User,
+  QrCode,
 } from "lucide-react";
 
+import { getHospitalSettingsFn, updateHospitalSettingsFn } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/doctor/settings")({
   component: DoctorSettingsPage,
@@ -29,6 +35,7 @@ function DoctorSettingsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: profile } = useQuery({ queryKey: ["doctor-profile"], queryFn: () => getMyProfileFn() });
+  const { data: settings } = useQuery({ queryKey: ["hospital-settings"], queryFn: () => getHospitalSettingsFn() });
 
 
   // Doctor Profile State
@@ -41,6 +48,21 @@ function DoctorSettingsPage() {
   const [experience, setExperience] = useState("12");
   const [qualification, setQualification] = useState("MD, DM (Cardiology), FACC");
 
+  // General Settings State
+  const [hospitalName, setHospitalName] = useState("Pulse Heart Centre");
+  const [tagline, setTagline] = useState("Advanced Cardiac Care & Multi-specialty Hospital");
+  const [contactEmail, setContactEmail] = useState("info@pulseheartcentre.com");
+  const [helplinePhone, setHelplinePhone] = useState("+91 98765 43210");
+  const [secondaryPhone, setSecondaryPhone] = useState("");
+  const [address, setAddress] = useState("Station Road, Near Golghar, Gorakhpur, UP 273001");
+  const [opdHours, setOpdHours] = useState("Mon - Sat: 8:00 AM - 8:00 PM | Sun: Emergency Only");
+
+  // Fee & UPI State
+  const [normalFee, setNormalFee] = useState(500);
+  const [emergencyFee, setEmergencyFee] = useState(1000);
+  const [upiId, setUpiId] = useState("pulseheartcentre@upi");
+  const [upiName, setUpiName] = useState("Pulse Heart Centre");
+
   useEffect(() => {
     if (profile) {
       setDocName(profile.name || "");
@@ -51,7 +73,21 @@ function DoctorSettingsPage() {
       setSpecialty(profile.specialty || "");
       setQualification(profile.bio || "");
     }
-  }, [profile]);
+
+    if (settings) {
+      setHospitalName(settings.hospitalName || "Pulse Heart Centre");
+      setTagline(settings.tagline || "");
+      setContactEmail(settings.contactEmail || "");
+      setHelplinePhone(settings.helplinePhone || "");
+      setSecondaryPhone(settings.secondaryPhone || "");
+      setAddress(settings.address || "");
+      setOpdHours(settings.opdHours || "");
+      setNormalFee(settings.normalFee ?? 500);
+      setEmergencyFee(settings.emergencyFee ?? 1000);
+      setUpiId(settings.upiId || "pulseheartcentre@upi");
+      setUpiName(settings.upiName || "Pulse Heart Centre");
+    }
+  }, [profile, settings]);
 
   // Security & Password State
   const [currPassword, setCurrPassword] = useState("");
@@ -75,6 +111,15 @@ function DoctorSettingsPage() {
     }
   });
 
+  const updateHospitalMutation = useMutation({
+    mutationFn: (vars: Parameters<typeof updateHospitalSettingsFn>[0]["data"]) =>
+      updateHospitalSettingsFn({ data: vars }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["hospital-settings"] });
+      triggerSaved("Hospital settings updated successfully!");
+    },
+  });
+
   const handleSaveProfile = async () => {
     try {
       await updateMutation.mutateAsync({
@@ -90,6 +135,22 @@ function DoctorSettingsPage() {
     } catch (e: any) {
       toast.error(e.message || "Failed to save profile");
     }
+  };
+
+  const handleSaveHospitalInfo = () => {
+    updateHospitalMutation.mutate({
+      hospitalName,
+      tagline,
+      contactEmail,
+      helplinePhone,
+      secondaryPhone,
+      address,
+      opdHours,
+      normalFee: Number(normalFee),
+      emergencyFee: Number(emergencyFee),
+      upiId,
+      upiName,
+    });
   };
 
   const handleSavePassword = async () => {
@@ -136,8 +197,14 @@ function DoctorSettingsPage() {
         )}
       </div>
 
-      <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2 max-w-md h-auto p-1 bg-muted/60">
+      <Tabs defaultValue="hospital" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4 max-w-2xl h-auto p-1 bg-muted/60">
+          <TabsTrigger value="hospital" className="gap-2 py-2.5">
+            <Building2 className="h-4 w-4" /> Hospital Info
+          </TabsTrigger>
+          <TabsTrigger value="fees" className="gap-2 py-2.5">
+            <ReceiptIndianRupee className="h-4 w-4" /> Fees & UPI
+          </TabsTrigger>
           <TabsTrigger value="profile" className="gap-2 py-2.5">
             <User className="h-4 w-4" /> Profile Info
           </TabsTrigger>
@@ -145,6 +212,174 @@ function DoctorSettingsPage() {
             <Lock className="h-4 w-4" /> Security
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="hospital">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-primary" /> Hospital Profile & Contact
+              </CardTitle>
+              <CardDescription>
+                Publicly displayed information on patient receipts, portal, and hospital header.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="hname">Hospital Name</Label>
+                  <Input
+                    id="hname"
+                    value={hospitalName}
+                    onChange={(e) => setHospitalName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="tagline">Tagline / Motto</Label>
+                  <Input
+                    id="tagline"
+                    value={tagline}
+                    onChange={(e) => setTagline(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="cemail" className="flex items-center gap-1.5">
+                    <Mail className="h-3.5 w-3.5 text-muted-foreground" /> Contact Email
+                  </Label>
+                  <Input
+                    id="cemail"
+                    type="email"
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="hphone" className="flex items-center gap-1.5">
+                    <Phone className="h-3.5 w-3.5 text-muted-foreground" /> Primary Helpline
+                  </Label>
+                  <Input
+                    id="hphone"
+                    value={helplinePhone}
+                    onChange={(e) => setHelplinePhone(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="sphone" className="flex items-center gap-1.5">
+                    <Phone className="h-3.5 w-3.5 text-muted-foreground" /> Secondary Phone
+                  </Label>
+                  <Input
+                    id="sphone"
+                    value={secondaryPhone}
+                    onChange={(e) => setSecondaryPhone(e.target.value)}
+                    placeholder="Optional"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="opd" className="flex items-center gap-1.5">
+                    <Globe className="h-3.5 w-3.5 text-muted-foreground" /> OPD Timings
+                  </Label>
+                  <Input
+                    id="opd"
+                    value={opdHours}
+                    onChange={(e) => setOpdHours(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="address">Full Address</Label>
+                <Textarea
+                  id="address"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  className="resize-none"
+                  rows={3}
+                />
+              </div>
+
+              <Button onClick={handleSaveHospitalInfo} className="w-full sm:w-auto" disabled={updateHospitalMutation.isPending}>
+                <Save className="mr-2 h-4 w-4" />
+                {updateHospitalMutation.isPending ? "Saving..." : "Save Hospital Details"}
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tab 2: Fees & UPI */}
+        <TabsContent value="fees">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <ReceiptIndianRupee className="h-5 w-5 text-primary" /> Consultation Fees
+              </CardTitle>
+              <CardDescription>
+                Default fees charged for regular and emergency appointments.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5 border-b pb-6">
+              <div className="grid gap-4 sm:grid-cols-2 max-w-lg">
+                <div className="space-y-2">
+                  <Label htmlFor="nfee">Normal Fee (₹)</Label>
+                  <Input
+                    id="nfee"
+                    type="number"
+                    value={normalFee}
+                    onChange={(e) => setNormalFee(Number(e.target.value))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="efee">Emergency Fee (₹)</Label>
+                  <Input
+                    id="efee"
+                    type="number"
+                    value={emergencyFee}
+                    onChange={(e) => setEmergencyFee(Number(e.target.value))}
+                  />
+                </div>
+              </div>
+            </CardContent>
+
+            <CardHeader className="pt-6">
+              <CardTitle className="text-base flex items-center gap-2">
+                <QrCode className="h-5 w-5 text-primary" /> UPI Payment Gateway
+              </CardTitle>
+              <CardDescription>
+                UPI details displayed to patients for online payments.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <div className="grid gap-4 sm:grid-cols-2 max-w-lg">
+                <div className="space-y-2">
+                  <Label htmlFor="upiId">Hospital UPI ID</Label>
+                  <Input
+                    id="upiId"
+                    value={upiId}
+                    onChange={(e) => setUpiId(e.target.value)}
+                    placeholder="e.g. hospital@upi"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="upiName">Merchant Name (UPI)</Label>
+                  <Input
+                    id="upiName"
+                    value={upiName}
+                    onChange={(e) => setUpiName(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <Button onClick={handleSaveHospitalInfo} className="w-full sm:w-auto mt-4" disabled={updateHospitalMutation.isPending}>
+                <Save className="mr-2 h-4 w-4" />
+                {updateHospitalMutation.isPending ? "Saving..." : "Save Financial Details"}
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         {/* Tab 1: Profile & Professional Information */}
         <TabsContent value="profile">

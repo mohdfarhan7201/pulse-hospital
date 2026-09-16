@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Search, Calendar, Filter } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
 
 import {

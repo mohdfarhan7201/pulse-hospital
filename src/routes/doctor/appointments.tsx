@@ -62,6 +62,16 @@ function MyAppointmentsPage() {
     },
   });
 
+  const [deptFilter, setDeptFilter] = useState<string>("all");
+
+  const deptOptions = useMemo(() => {
+    const set = new Set<string>(["Cardiology", "Diagnostics"]);
+    appointments.forEach((a) => {
+      if (a.department) set.add(a.department);
+    });
+    return Array.from(set);
+  }, [appointments]);
+
   const filtered = appointments.filter((a) => {
     const q = search.toLowerCase().trim();
     const matchesSearch =
@@ -71,7 +81,8 @@ function MyAppointmentsPage() {
       a.address.toLowerCase().includes(q) || a.state.toLowerCase().includes(q) ||
       a.department.toLowerCase().includes(q);
     const matchesStatus = statusFilter === "all" || a.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesDept = deptFilter === "all" || (a.department || "Cardiology") === deptFilter;
+    return matchesSearch && matchesStatus && matchesDept;
   });
 
   const counts = {
@@ -113,7 +124,7 @@ function MyAppointmentsPage() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
             <Input
               id="doctor-appointment-search"
-              placeholder="Search by patient name or ID…"
+              placeholder="Search by patient name, department, or ID…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
@@ -121,10 +132,30 @@ function MyAppointmentsPage() {
           </div>
 
           <Select
+            value={deptFilter}
+            onValueChange={(v) => setDeptFilter(v)}
+          >
+            <SelectTrigger className="w-full sm:w-44">
+              <div className="flex items-center gap-2">
+                <Filter className="h-3.5 w-3.5 text-muted-foreground" />
+                <SelectValue placeholder="All Departments" />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Departments</SelectItem>
+              {deptOptions.map((d) => (
+                <SelectItem key={d} value={d}>
+                  {d}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
             value={statusFilter}
             onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}
           >
-            <SelectTrigger className="w-full sm:w-48">
+            <SelectTrigger className="w-full sm:w-44">
               <div className="flex items-center gap-2">
                 <Filter className="h-3.5 w-3.5 text-muted-foreground" />
                 <SelectValue placeholder="All statuses" />
@@ -185,7 +216,17 @@ function MyAppointmentsPage() {
                   {a.email && <div className="text-[11px] text-muted-foreground">{a.email}</div>}
                 </TableCell>
 
-                <TableCell className="text-sm font-medium">{a.department}</TableCell>
+                <TableCell className="text-sm font-medium">
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                      a.department === "Diagnostics"
+                        ? "bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800/40"
+                        : "bg-cyan-100 text-cyan-800 dark:bg-cyan-950/60 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800/40"
+                    }`}
+                  >
+                    {a.department || "Cardiology"}
+                  </span>
+                </TableCell>
 
                 <TableCell className="text-sm">
                   <div className="flex items-center gap-1.5 text-foreground font-medium">

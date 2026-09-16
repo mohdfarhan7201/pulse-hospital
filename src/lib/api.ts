@@ -420,10 +420,10 @@ export const listPatientsFn = createServerFn({ method: "GET" }).handler(async ()
 export const listDepartmentsFn = createServerFn({ method: "GET" }).handler(async () => {
   await requireDoctor();
   const db = await getDb();
-  const names = [...new Set(db.doctors.map((d) => d.department))];
+  const names = [...new Set(["Cardiology", "Diagnostics", ...db.doctors.map((d) => d.department)])];
   return names.map((name) => ({
     name,
-    doctorCount: db.doctors.filter((d) => d.department === name).length,
+    doctorCount: db.doctors.filter((d) => d.department === name || name === "Diagnostics").length,
     patientCount: db.patients.filter((p) => p.department === name).length,
   }));
 });

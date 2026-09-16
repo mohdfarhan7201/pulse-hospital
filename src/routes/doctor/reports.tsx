@@ -78,7 +78,7 @@ function DoctorReportsPage() {
               {data?.hospitalName || "PULSE HEART CENTRE"}
             </h1>
             <p className="text-xs font-semibold text-gray-700 mt-0.5">
-              Department of Cardiology • Clinical &amp; OPD Consultation Report
+              Department of Cardiology &amp; Diagnostics • Clinical &amp; OPD Consultation Report
             </p>
             <p className="text-[11px] text-gray-500 mt-0.5">
               Station Road, Near Golghar, Gorakhpur, UP • Helpline: {data?.helplinePhone || "+91 98765 43210"}
@@ -101,7 +101,7 @@ function DoctorReportsPage() {
             Doctor Consultation Reports
           </h2>
           <p className="text-sm text-muted-foreground">
-            Dr. Prakash Chand Shahi • Department of Cardiology
+            Dr. Prakash Chand Shahi • Department of Cardiology &amp; Diagnostics
           </p>
         </div>
         <div>

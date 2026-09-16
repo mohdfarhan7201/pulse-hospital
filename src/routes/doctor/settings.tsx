@@ -557,9 +557,16 @@ function DoctorSettingsPage() {
                   <Label htmlFor="dept">Department</Label>
                   <Input
                     id="dept"
+                    list="dept-options"
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
+                    placeholder="e.g. Cardiology, Diagnostics"
                   />
+                  <datalist id="dept-options">
+                    <option value="Cardiology" />
+                    <option value="Diagnostics" />
+                    <option value="Cardiology & Diagnostics" />
+                  </datalist>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="spec">Specialty</Label>

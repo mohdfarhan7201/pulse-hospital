@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import { Search, Phone, Mail, Calendar, UserCheck, Users } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Search, Phone, Mail, Calendar, UserCheck, Users, Filter } from "lucide-react";
 
 import { listMyPatientsFn } from "@/lib/api";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -9,6 +9,13 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -24,6 +31,7 @@ export const Route = createFileRoute("/doctor/patients")({
 
 function MyPatientsPage() {
   const [search, setSearch] = useState("");
+  const [deptFilter, setDeptFilter] = useState<string>("all");
 
   const { data: patients = [], isLoading } = useQuery({
     refetchInterval: 5000,
@@ -31,15 +39,24 @@ function MyPatientsPage() {
     queryFn: () => listMyPatientsFn(),
   });
 
+  const deptOptions = useMemo(() => {
+    const set = new Set<string>(["Cardiology", "Diagnostics"]);
+    patients.forEach((p) => {
+      if (p.department) set.add(p.department);
+    });
+    return Array.from(set);
+  }, [patients]);
+
   const filtered = patients.filter((p) => {
     const q = search.toLowerCase().trim();
-    if (!q) return true;
-    return (
+    const matchesSearch =
+      !q ||
       p.name.toLowerCase().includes(q) ||
       p.phone.toLowerCase().includes(q) ||
       p.email.toLowerCase().includes(q) ||
-      (p.department && p.department.toLowerCase().includes(q))
-    );
+      (p.department && p.department.toLowerCase().includes(q));
+    const matchesDept = deptFilter === "all" || (p.department || "Cardiology") === deptFilter;
+    return matchesSearch && matchesDept;
   });
 
   return (
@@ -61,16 +78,35 @@ function MyPatientsPage() {
       </div>
 
       <Card className="p-4 sm:p-5">
-        {/* Search Bar */}
+        {/* Search & Filter Bar */}
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative w-full sm:max-w-xs">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search by name, phone, email…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-9 text-sm"
-            />
+          <div className="flex flex-col sm:flex-row gap-3 flex-1">
+            <div className="relative w-full sm:max-w-xs">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search by name, phone, email…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9 h-9 text-sm"
+              />
+            </div>
+
+            <Select value={deptFilter} onValueChange={(v) => setDeptFilter(v)}>
+              <SelectTrigger className="w-full sm:w-44 h-9 text-sm">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-3.5 w-3.5 text-muted-foreground" />
+                  <SelectValue placeholder="All Departments" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Departments</SelectItem>
+                {deptOptions.map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {d}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           {search && (
             <p className="text-xs text-muted-foreground">
@@ -159,8 +195,16 @@ function MyPatientsPage() {
                     )}
                   </TableCell>
 
-                  <TableCell className="text-sm font-medium text-muted-foreground">
-                    {p.department || "Cardiology"}
+                  <TableCell className="text-sm font-medium">
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                        p.department === "Diagnostics"
+                          ? "bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200 dark:border-purple-800/40"
+                          : "bg-cyan-100 text-cyan-800 dark:bg-cyan-950/60 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800/40"
+                      }`}
+                    >
+                      {p.department || "Cardiology"}
+                    </span>
                   </TableCell>
 
                   <TableCell>

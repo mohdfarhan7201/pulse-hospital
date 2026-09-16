@@ -29,9 +29,12 @@ import gsap from "gsap";
 
 interface AppointmentModalProps {
   children: React.ReactNode;
+  initialDepartment?: string;
 }
 
-export function AppointmentModal({ children }: AppointmentModalProps) {
+const DEFAULT_DEPARTMENTS = ["Cardiology", "Diagnostics"];
+
+export function AppointmentModal({ children, initialDepartment }: AppointmentModalProps) {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [appointmentType, setAppointmentType] = useState<"normal" | "emergency">("normal");
@@ -40,7 +43,7 @@ export function AppointmentModal({ children }: AppointmentModalProps) {
   const [bookingSuccess, setBookingSuccess] = useState(false);
 
   // Selection & form states
-  const [selectedDept, setSelectedDept] = useState("");
+  const [selectedDept, setSelectedDept] = useState(initialDepartment || "");
   const [selectedDoctorId, setSelectedDoctorId] = useState("");
   const [bookedDetails, setBookedDetails] = useState<{
     name: string;
@@ -72,25 +75,32 @@ export function AppointmentModal({ children }: AppointmentModalProps) {
 
   const currentFee = appointmentType === "emergency" ? emergencyFee : normalFee;
 
-  const departments = Array.from(new Set(publicDoctors.map((d) => d.department)));
+  const departments = Array.from(
+    new Set([...DEFAULT_DEPARTMENTS, ...publicDoctors.map((d) => d.department).filter(Boolean)])
+  );
+
   const filteredDoctors = publicDoctors.filter(
-    (d) => !selectedDept || d.department === selectedDept
+    (d) => !selectedDept || d.department === selectedDept || selectedDept === "Diagnostics"
   );
 
   useEffect(() => {
-    if (publicDoctors.length > 0) {
-      if (!selectedDept && departments.length > 0) {
-        setSelectedDept(departments[0]);
-      }
-      if (!selectedDoctorId && publicDoctors.length > 0) {
-        setSelectedDoctorId(publicDoctors[0].id);
-      }
+    if (initialDepartment && departments.includes(initialDepartment)) {
+      setSelectedDept(initialDepartment);
+    } else if (!selectedDept && departments.length > 0) {
+      setSelectedDept(departments[0]);
     }
-  }, [publicDoctors, selectedDept, selectedDoctorId, departments]);
+  }, [initialDepartment, departments, selectedDept]);
+
+  useEffect(() => {
+    if (publicDoctors.length > 0 && !selectedDoctorId) {
+      setSelectedDoctorId(publicDoctors[0].id);
+    }
+  }, [publicDoctors, selectedDoctorId]);
 
   const handleDepartmentChange = (dept: string) => {
     setSelectedDept(dept);
-    const firstDoc = publicDoctors.find((d) => !dept || d.department === dept);
+    const matched = publicDoctors.filter((d) => !dept || d.department === dept);
+    const firstDoc = matched.length > 0 ? matched[0] : publicDoctors[0];
     if (firstDoc) {
       setSelectedDoctorId(firstDoc.id);
     }
@@ -126,7 +136,7 @@ export function AppointmentModal({ children }: AppointmentModalProps) {
           email,
           age,
           gender,
-          department: selectedDept || doctor?.department || "General Medicine",
+          department: selectedDept || doctor?.department || "Cardiology",
           doctorId: selectedDoctorId || doctor?.id || "",
           date,
           time: appointmentType === "emergency" ? "Immediate Emergency" : "10:00 AM",

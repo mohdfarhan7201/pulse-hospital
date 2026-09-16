@@ -168,7 +168,7 @@ export const createPublicAppointmentFn = createServerFn({ method: "POST" })
     const cleanPhone = data.phone.trim();
     const cleanEmail = data.email?.trim() || "";
     const cleanName = data.patientName.trim();
-    const cleanDepartment = data.department || doctor?.department || "Cardiology";
+    const cleanDepartment = data.department || doctor?.department || "Diagnostics";
 
     // Match patient by both phone and name (case-insensitive)
     // If name matches, it is the same patient returning for an appointment
@@ -420,7 +420,7 @@ export const listPatientsFn = createServerFn({ method: "GET" }).handler(async ()
 export const listDepartmentsFn = createServerFn({ method: "GET" }).handler(async () => {
   await requireDoctor();
   const db = await getDb();
-  const names = [...new Set(["Cardiology", "Diagnostics", ...db.doctors.map((d) => d.department)])];
+  const names = [...new Set(["Diagnostics", ...db.doctors.map((d) => d.department).filter((d) => d && d !== "Cardiology")])];
   return names.map((name) => ({
     name,
     doctorCount: db.doctors.filter((d) => d.department === name || name === "Diagnostics").length,
@@ -588,7 +588,7 @@ export const getAdminReportsFn = createServerFn({ method: "GET" }).handler(async
   // Department counts
   const departmentCounts: Record<string, number> = {};
   for (const a of db.appointments) {
-    const dept = a.department || "Cardiology";
+    const dept = a.department || "Diagnostics";
     departmentCounts[dept] = (departmentCounts[dept] ?? 0) + 1;
   }
 

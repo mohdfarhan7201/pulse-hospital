@@ -40,9 +40,9 @@ function MyPatientsPage() {
   });
 
   const deptOptions = useMemo(() => {
-    const set = new Set<string>(["Cardiology", "Diagnostics"]);
+    const set = new Set<string>(["Diagnostics"]);
     patients.forEach((p) => {
-      if (p.department) set.add(p.department);
+      if (p.department && p.department !== "Cardiology") set.add(p.department);
     });
     return Array.from(set);
   }, [patients]);
@@ -55,7 +55,7 @@ function MyPatientsPage() {
       p.phone.toLowerCase().includes(q) ||
       p.email.toLowerCase().includes(q) ||
       (p.department && p.department.toLowerCase().includes(q));
-    const matchesDept = deptFilter === "all" || (p.department || "Cardiology") === deptFilter;
+    const matchesDept = deptFilter === "all" || (p.department || "Diagnostics") === deptFilter;
     return matchesSearch && matchesDept;
   });
 
@@ -203,7 +203,7 @@ function MyPatientsPage() {
                           : "bg-cyan-100 text-cyan-800 dark:bg-cyan-950/60 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800/40"
                       }`}
                     >
-                      {p.department || "Cardiology"}
+                      {p.department || "Diagnostics"}
                     </span>
                   </TableCell>
 

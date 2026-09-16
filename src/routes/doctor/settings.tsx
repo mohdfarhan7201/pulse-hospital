@@ -48,7 +48,7 @@ function DoctorSettingsPage() {
   const [docEmail, setDocEmail] = useState(user.email);
   const [docPhone, setDocPhone] = useState("+91 98765 43210");
   const [specialty, setSpecialty] = useState("Interventional Cardiology");
-  const [department, setDepartment] = useState("Cardiology");
+  const [department, setDepartment] = useState("Diagnostics");
   const [experience, setExperience] = useState("12");
   const [qualification, setQualification] = useState("MD, DM (Cardiology), FACC");
   const [photoUrl, setPhotoUrl] = useState<string>("");
@@ -563,9 +563,7 @@ function DoctorSettingsPage() {
                     placeholder="e.g. Cardiology, Diagnostics"
                   />
                   <datalist id="dept-options">
-                    <option value="Cardiology" />
                     <option value="Diagnostics" />
-                    <option value="Cardiology & Diagnostics" />
                   </datalist>
                 </div>
                 <div className="space-y-2">

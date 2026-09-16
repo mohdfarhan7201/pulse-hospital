@@ -181,7 +181,7 @@ function SpecialtyPage() {
                 {data.description}
               </p>
               <div className="pt-4">
-                <AppointmentModal initialDepartment={slug === "diagnostic-cardiology" ? "Diagnostics" : "Cardiology"}>
+                <AppointmentModal initialDepartment="Diagnostics">
                   <button className="group relative inline-flex h-14 items-center justify-center overflow-hidden rounded-full bg-[oklch(0.62_0.15_210)] px-8 font-medium text-white transition-all hover:scale-105 hover:shadow-[0_10px_40px_oklch(0.62_0.15_210_/_0.4)]">
                     <span className="relative z-10 flex items-center gap-2">
                       Book Consultation <Stethoscope className="h-4 w-4 transition-transform group-hover:rotate-12" />

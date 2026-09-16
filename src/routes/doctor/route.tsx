@@ -9,7 +9,7 @@ import {
   Settings,
   User,
   Users,
-  Video,
+  BookOpen,
 } from "lucide-react";
 
 import { getSessionFn } from "@/lib/auth";
@@ -23,7 +23,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/doctor/billing", label: "Billing", icon: <Receipt /> },
   { to: "/doctor/reports", label: "Reports", icon: <FileBarChart2 /> },
   { to: "/doctor/notifications", label: "Notifications", icon: <Bell /> },
-  { to: "/doctor/vlogs", label: "Vlogs", icon: <Video /> },
+  { to: "/doctor/blogs", label: "Blogs", icon: <BookOpen /> },
   { to: "/doctor/profile", label: "Profile", icon: <User /> },
   { to: "/doctor/settings", label: "Settings", icon: <Settings /> },
 ];
@@ -35,8 +35,8 @@ const TITLES: Record<string, string> = {
   "/doctor/billing": "Billing & Payments",
   "/doctor/reports": "Reports",
   "/doctor/notifications": "Notifications",
-  "/doctor/vlogs": "Vlogs & Videos",
-  "/doctor/blogs": "Vlogs & Videos",
+  "/doctor/blogs": "Health Blogs & Articles",
+  "/doctor/vlogs": "Health Blogs & Articles",
   "/doctor/profile": "Profile",
   "/doctor/settings": "Settings",
 };

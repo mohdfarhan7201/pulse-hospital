@@ -32,7 +32,7 @@ interface AppointmentModalProps {
   initialDepartment?: string;
 }
 
-const DEFAULT_DEPARTMENTS = ["Cardiology", "Diagnostics"];
+const DEFAULT_DEPARTMENTS = ["Diagnostics"];
 
 export function AppointmentModal({ children, initialDepartment }: AppointmentModalProps) {
   const queryClient = useQueryClient();
@@ -43,7 +43,7 @@ export function AppointmentModal({ children, initialDepartment }: AppointmentMod
   const [bookingSuccess, setBookingSuccess] = useState(false);
 
   // Selection & form states
-  const [selectedDept, setSelectedDept] = useState(initialDepartment || "");
+  const [selectedDept, setSelectedDept] = useState(initialDepartment || "Diagnostics");
   const [selectedDoctorId, setSelectedDoctorId] = useState("");
   const [bookedDetails, setBookedDetails] = useState<{
     name: string;
@@ -76,12 +76,10 @@ export function AppointmentModal({ children, initialDepartment }: AppointmentMod
   const currentFee = appointmentType === "emergency" ? emergencyFee : normalFee;
 
   const departments = Array.from(
-    new Set([...DEFAULT_DEPARTMENTS, ...publicDoctors.map((d) => d.department).filter(Boolean)])
+    new Set([...DEFAULT_DEPARTMENTS, ...publicDoctors.map((d) => d.department).filter((dept) => dept && dept !== "Cardiology")])
   );
 
-  const filteredDoctors = publicDoctors.filter(
-    (d) => !selectedDept || d.department === selectedDept || selectedDept === "Diagnostics"
-  );
+  const filteredDoctors = publicDoctors;
 
   useEffect(() => {
     if (initialDepartment && departments.includes(initialDepartment)) {
@@ -136,7 +134,7 @@ export function AppointmentModal({ children, initialDepartment }: AppointmentMod
           email,
           age,
           gender,
-          department: selectedDept || doctor?.department || "Cardiology",
+          department: selectedDept || "Diagnostics",
           doctorId: selectedDoctorId || doctor?.id || "",
           date,
           time: appointmentType === "emergency" ? "Immediate Emergency" : "10:00 AM",

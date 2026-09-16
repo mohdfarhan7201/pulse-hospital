@@ -1243,13 +1243,11 @@ function Appointment() {
     queryFn: () => listPublicDoctorsFn(),
   });
 
-  const DEFAULT_DEPARTMENTS = ["Cardiology", "Diagnostics"];
+  const DEFAULT_DEPARTMENTS = ["Diagnostics"];
   const departments = Array.from(
-    new Set([...DEFAULT_DEPARTMENTS, ...publicDoctors.map((d) => d.department).filter(Boolean)])
+    new Set([...DEFAULT_DEPARTMENTS, ...publicDoctors.map((d) => d.department).filter((dept) => dept && dept !== "Cardiology")])
   );
-  const filteredDoctors = publicDoctors.filter(
-    (d) => !selectedDept || d.department === selectedDept || selectedDept === "Diagnostics"
-  );
+  const filteredDoctors = publicDoctors;
 
   useEffect(() => {
     if (publicDoctors.length > 0) {
@@ -1296,7 +1294,7 @@ function Appointment() {
           email,
           age,
           gender,
-          department: selectedDept || doctor?.department || "Cardiology",
+          department: selectedDept || "Diagnostics",
           doctorId: selectedDoctorId || doctor?.id || "",
           date,
           address,

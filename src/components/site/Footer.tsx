@@ -150,6 +150,7 @@ export function Footer() {
               { label: "Our Services", href: "/#services" },
               { label: "Technology", href: "/#technology" },
               { label: "Our Doctor", href: "/#doctors" },
+              { label: "Health Blogs", href: "/blogs" },
               { label: "Patient Stories", href: "/#stories" }
             ]} />
             <div>

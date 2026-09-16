@@ -205,7 +205,7 @@ function seedDb(): DbShape {
       id: "doc-prakash",
       name: "Dr. Prakash Chand Shahi",
       specialty: "Cardiologist",
-      department: "Cardiology",
+      department: "Diagnostics",
       email: "doctor@pulseheart.com",
       phone: "+91 98765 10001",
       experienceYears: 15,

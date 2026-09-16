@@ -12,7 +12,7 @@ const links = [
   { to: "/", hash: "technology", label: "Technology" },
   { to: "/", hash: "doctors", label: "Doctor" },
   { to: "/", hash: "stories", label: "Stories" },
-  { to: "/vlogs", hash: undefined, label: "Vlogs" },
+  { to: "/blogs", hash: undefined, label: "Blogs" },
   { to: "/", hash: "contact", label: "Contact" },
 ];
 

@@ -65,9 +65,9 @@ function MyAppointmentsPage() {
   const [deptFilter, setDeptFilter] = useState<string>("all");
 
   const deptOptions = useMemo(() => {
-    const set = new Set<string>(["Cardiology", "Diagnostics"]);
+    const set = new Set<string>(["Diagnostics"]);
     appointments.forEach((a) => {
-      if (a.department) set.add(a.department);
+      if (a.department && a.department !== "Cardiology") set.add(a.department);
     });
     return Array.from(set);
   }, [appointments]);
@@ -81,7 +81,7 @@ function MyAppointmentsPage() {
       a.address.toLowerCase().includes(q) || a.state.toLowerCase().includes(q) ||
       a.department.toLowerCase().includes(q);
     const matchesStatus = statusFilter === "all" || a.status === statusFilter;
-    const matchesDept = deptFilter === "all" || (a.department || "Cardiology") === deptFilter;
+    const matchesDept = deptFilter === "all" || (a.department || "Diagnostics") === deptFilter;
     return matchesSearch && matchesStatus && matchesDept;
   });
 
@@ -224,7 +224,7 @@ function MyAppointmentsPage() {
                         : "bg-cyan-100 text-cyan-800 dark:bg-cyan-950/60 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800/40"
                     }`}
                   >
-                    {a.department || "Cardiology"}
+                    {a.department || "Diagnostics"}
                   </span>
                 </TableCell>
 

@@ -749,16 +749,16 @@ function Doctors() {
         {/* Featured Doctor Luxury Card */}
         <div
           ref={cardRef}
-          className="mt-12 relative overflow-hidden rounded-[2.5rem] border border-border/80 bg-gradient-to-br from-card/95 via-card/60 to-background p-6 sm:p-10 lg:p-12 shadow-2xl backdrop-blur-xl"
+          className="mt-12 relative overflow-hidden rounded-3xl sm:rounded-[2.5rem] border border-border/80 bg-gradient-to-br from-card/95 via-card/60 to-background p-4 sm:p-8 lg:p-12 shadow-2xl backdrop-blur-xl"
         >
           {/* Ambient Lighting Gradients */}
           <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-primary/10 blur-[120px]" />
           <div className="pointer-events-none absolute -left-24 -bottom-24 h-96 w-96 rounded-full bg-[oklch(0.55_0.22_20)]/10 blur-[120px]" />
 
-          <div className="relative z-10 grid gap-10 lg:grid-cols-12 lg:items-center">
+          <div className="relative z-10 grid gap-8 sm:gap-10 lg:grid-cols-12 lg:items-center">
             {/* Visual Column */}
             <div className="lg:col-span-5 flex flex-col items-center">
-              <div className="group relative aspect-[3/4] w-full max-w-md overflow-hidden rounded-[2.2rem] border border-white/15 bg-black shadow-2xl transition-all duration-500 hover:shadow-primary/25">
+              <div className="group relative aspect-[3/4] w-full max-w-sm sm:max-w-md overflow-hidden rounded-2xl sm:rounded-[2.2rem] border border-white/15 bg-black shadow-2xl transition-all duration-500 hover:shadow-primary/25">
                 <img
                   src={leadDoc.img}
                   alt={leadDoc.n}
@@ -770,7 +770,7 @@ function Doctors() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-80 transition-opacity group-hover:opacity-90" />
 
                 {/* Available Status Pill */}
-                <div className="absolute left-5 top-5 flex items-center gap-2 rounded-full border border-white/20 bg-black/60 px-4 py-1.5 text-xs font-semibold tracking-wider text-white backdrop-blur-md shadow-lg">
+                <div className="absolute left-3 top-3 sm:left-4 sm:top-4 flex items-center gap-1.5 sm:gap-2 rounded-full border border-white/20 bg-black/60 px-2.5 py-1 sm:px-3 sm:py-1.5 text-[10px] sm:text-xs font-semibold tracking-wide text-white backdrop-blur-md shadow-lg">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -779,13 +779,17 @@ function Doctors() {
                 </div>
 
                 {/* Bottom Overlay Info */}
-                <div className="absolute inset-x-4 bottom-4 rounded-2xl border border-white/10 bg-white/10 p-4 sm:p-5 backdrop-blur-xl shadow-xl">
+                <div className="absolute inset-x-2.5 bottom-2.5 sm:inset-x-4 sm:bottom-4 rounded-xl sm:rounded-2xl border border-white/10 bg-black/60 sm:bg-white/10 p-2.5 sm:p-4 backdrop-blur-xl shadow-xl">
                   <div className="flex items-center justify-between gap-2">
-                    <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-widest text-white/70">Clinical Director</p>
-                      <h4 className="font-display text-lg font-bold text-white drop-shadow-sm">{leadDoc.n}</h4>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-white/70 truncate">
+                        Clinical Director
+                      </p>
+                      <h4 className="font-display text-sm sm:text-base md:text-lg font-bold text-white truncate drop-shadow-sm">
+                        {leadDoc.n}
+                      </h4>
                     </div>
-                    <span className="shrink-0 rounded-xl bg-primary/90 px-3 py-1 text-xs font-bold text-white shadow-sm">
+                    <span className="shrink-0 rounded-lg sm:rounded-xl bg-primary px-2.5 py-1 text-[11px] sm:text-xs font-bold text-white shadow-sm whitespace-nowrap">
                       {leadDoc.exp}
                     </span>
                   </div>

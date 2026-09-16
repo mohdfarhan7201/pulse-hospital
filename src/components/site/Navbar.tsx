@@ -2,27 +2,31 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { LogIn, Menu, Phone, X } from "lucide-react";
 import logo1 from "@/assets/logo1.png";
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { AppointmentModal } from "@/components/site/AppointmentModal";
 import { getHospitalSettingsFn } from "@/lib/api";
 
 const links = [
-  { href: "/#about", label: "About" },
-  { href: "/#services", label: "Services" },
-  { href: "/#technology", label: "Technology" },
-  { href: "/#doctors", label: "Doctors" },
-  { href: "/#stories", label: "Stories" },
-  { href: "/blogs", label: "Blogs" },
-  { href: "/#contact", label: "Contact" },
+  { to: "/", hash: "about", label: "About" },
+  { to: "/", hash: "services", label: "Services" },
+  { to: "/", hash: "technology", label: "Technology" },
+  { to: "/", hash: "doctors", label: "Doctor" },
+  { to: "/", hash: "stories", label: "Stories" },
+  { to: "/vlogs", hash: undefined, label: "Vlogs" },
+  { to: "/", hash: "contact", label: "Contact" },
 ];
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
+  const location = useLocation();
+  const pathname = location.pathname;
+
   const { data: settings } = useQuery({
     queryKey: ["hospital-settings"],
     queryFn: () => getHospitalSettingsFn(),
+    staleTime: 60_000,
   });
 
   const hospitalName = settings?.hospitalName || "Pulse Heart Centre";
@@ -35,6 +39,13 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const isLinkActive = (l: (typeof links)[number]) => {
+    if (l.to === "/vlogs" || l.to === "/blogs") {
+      return pathname.startsWith("/vlogs") || pathname.startsWith("/blogs");
+    }
+    return false;
+  };
+
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
@@ -44,13 +55,13 @@ export function Navbar() {
       <div className="mx-auto max-w-7xl px-5">
         <nav
           className={`flex items-center justify-between rounded-2xl px-5 py-3 transition-all duration-500 ${
-            scrolled
+            scrolled || pathname !== "/"
               ? "glass-dark shadow-luxe"
               : "border border-white/10 bg-white/5 backdrop-blur-md"
           }`}
           aria-label="Primary"
         >
-          <a href="#top" className="flex items-center gap-3 text-white">
+          <Link to="/" className="flex items-center gap-3 text-white">
             <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-crimson">
               <img src={logo1} alt="Hospital Logo" className="h-full w-full object-contain p-1" />
               <span className="absolute inset-0 rounded-xl border border-white/30 animate-pulse-ring" />
@@ -60,19 +71,27 @@ export function Navbar() {
                 {hospitalName}
               </span>
             </span>
-          </a>
+          </Link>
 
           <ul className="hidden items-center gap-1 lg:flex">
-            {links.map((l) => (
-              <li key={l.href}>
-                <a
-                  href={l.href}
-                  className="rounded-full px-4 py-2 text-sm font-medium text-white/80 transition hover:bg-white/10 hover:text-white"
-                >
-                  {l.label}
-                </a>
-              </li>
-            ))}
+            {links.map((l) => {
+              const active = isLinkActive(l);
+              return (
+                <li key={l.label}>
+                  <Link
+                    to={l.to}
+                    hash={l.hash}
+                    className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
+                      active
+                        ? "bg-white/15 text-white font-semibold shadow-sm"
+                        : "text-white/80 hover:bg-white/10 hover:text-white"
+                    }`}
+                  >
+                    {l.label}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
 
           <div className="hidden items-center gap-2 lg:flex">
@@ -109,17 +128,25 @@ export function Navbar() {
 
         <div className={`glass-dark mt-3 rounded-2xl p-4 text-white lg:hidden ${open ? 'block' : 'hidden'}`}>
           <ul className="flex flex-col gap-1">
-            {links.map((l) => (
-              <li key={l.href}>
-                <a
-                  onClick={() => setOpen(false)}
-                  className="block rounded-lg px-3 py-2 text-sm hover:bg-white/10"
-                  href={l.href}
-                >
-                  {l.label}
-                </a>
-              </li>
-            ))}
+            {links.map((l) => {
+              const active = isLinkActive(l);
+              return (
+                <li key={l.label}>
+                  <Link
+                    to={l.to}
+                    hash={l.hash}
+                    onClick={() => setOpen(false)}
+                    className={`block rounded-lg px-3 py-2 text-sm transition ${
+                      active
+                        ? "bg-white/15 text-white font-semibold"
+                        : "text-white/80 hover:bg-white/10 hover:text-white"
+                    }`}
+                  >
+                    {l.label}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
           <AppointmentModal>
             <button

@@ -98,6 +98,38 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      ScrollTrigger.refresh();
+      const hash = window.location.hash;
+      if (hash) {
+        const id = hash.replace("#", "");
+        const target = document.getElementById(id);
+        if (target) {
+          target.scrollIntoView({ behavior: "smooth" });
+        }
+      }
+    }, 150);
+
+    const onHashChange = () => {
+      ScrollTrigger.refresh();
+      const currentHash = window.location.hash;
+      if (currentHash) {
+        const id = currentHash.replace("#", "");
+        const target = document.getElementById(id);
+        if (target) {
+          target.scrollIntoView({ behavior: "smooth" });
+        }
+      }
+    };
+
+    window.addEventListener("hashchange", onHashChange);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("hashchange", onHashChange);
+    };
+  }, []);
+
   return (
     <div id="top" className="relative min-h-screen overflow-x-hidden bg-background text-foreground">
       <Loader />
@@ -636,98 +668,227 @@ function Technology() {
 }
 
 /* ═══════════════════════════════════════════════════
-   DOCTORS — staggered reveal with scale
+   DOCTOR SPOTLIGHT — Featured Chief Cardiologist
    ═══════════════════════════════════════════════════ */
 function Doctors() {
-  const gridRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
-  // Hardcoded founding doctors — shown when DB doctors have no photos yet
-  const fallbackDocs = [
-    { img: doc3, n: "Dr. Prakash Chand Shahi", r: "Director & Interventional Cardiologist", exp: "22+ yrs", bio: "MBBS (GSVM), MD Medicine (KGMU), DM Cardiology (PGIMER, Chandigarh). Over 22 years of expertise in complex angioplasties, pacemakers, and advanced heart failure management." },
-    { img: doc1, n: "Dr. Aditya Sharma", r: "Associate Cardiologist", exp: "12+ yrs", bio: "Dedicated to preventive cardiology, non-invasive cardiac diagnostics, and post-procedural patient rehabilitation." },
-    { img: doc2, n: "Dr. Meera Iyer", r: "Cardiac Care Specialist", exp: "15+ yrs", bio: "Expert in critical care cardiology and managing acute cardiac emergencies in our state-of-the-art ICU." },
-  ];
+  // Founding Chief Interventional Cardiologist
+  const defaultLeadDoc = {
+    img: doc3,
+    n: "Dr. Prakash Chand Shahi",
+    r: "Director & Senior Interventional Cardiologist",
+    degrees: "MBBS (GSVM) · MD Medicine (KGMU) · DM Cardiology (PGIMER, Chandigarh)",
+    exp: "22+ Years",
+    bio: "Pioneering advanced cardiac care in Eastern Uttar Pradesh, Dr. Prakash Chand Shahi brings over two decades of distinguished clinical and interventional mastery. Specializing in complex coronary angioplasties via radial approach, permanent pacemaker implantations, and emergency cardiac interventions.",
+  };
 
   const { data: dbDoctors } = useQuery({
     queryKey: ["public-doctors"],
     queryFn: () => listPublicDoctorsFn(),
-    staleTime: 30_000,
+    staleTime: 1000,
+    refetchOnMount: true,
   });
 
-  // Build the card list:
-  // – If DB has doctors with photos → show those doctors (up to 6)
-  // – Otherwise fall back to the hardcoded 3
   const dbWithPhoto = (dbDoctors ?? []).filter((d) => !!d.photoUrl);
-  const docs: { img: string; n: string; r: string; exp: string; bio: string }[] =
-    dbWithPhoto.length > 0
-      ? dbWithPhoto.slice(0, 6).map((d) => ({
-          img: d.photoUrl as string,
-          n: d.name,
-          r: d.specialty,
-          exp: `${d.experienceYears}+ yrs`,
-          bio: d.bio ?? `${d.specialty} at Pulse Heart Centre with ${d.experienceYears}+ years of experience.`,
-        }))
-      : fallbackDocs;
+  const primaryDbDoctor = (dbDoctors ?? []).find(
+    (d) => d.id === "doc-prakash" || d.name?.toLowerCase().includes("prakash")
+  ) || (dbDoctors && dbDoctors.length > 0 ? dbDoctors[0] : null);
+
+  const leadDoc = {
+    img: primaryDbDoctor?.photoUrl || defaultLeadDoc.img,
+    n: primaryDbDoctor?.name || defaultLeadDoc.n,
+    r: primaryDbDoctor?.specialty || defaultLeadDoc.r,
+    degrees: defaultLeadDoc.degrees,
+    exp: primaryDbDoctor ? `${primaryDbDoctor.experienceYears}+ Years` : defaultLeadDoc.exp,
+    bio: primaryDbDoctor?.bio || defaultLeadDoc.bio,
+  };
+
+  const isMultiple = (dbDoctors ?? []).length > 1;
 
   useEffect(() => {
     if (window.matchMedia("(max-width: 768px)").matches) return;
-      const ctx = gsap.context(() => {
-      if (!gridRef.current) return;
-      const cards = gridRef.current.children;
-      gsap.from(cards, {
+    const ctx = gsap.context(() => {
+      if (!cardRef.current) return;
+      gsap.from(cardRef.current, {
         y: 60,
         opacity: 0,
-        scale: 0.92,
+        scale: 0.95,
         duration: 1,
-        stagger: 0.15,
         ease: "power3.out",
         scrollTrigger: {
-          trigger: gridRef.current,
-          start: "top 95%",
+          trigger: cardRef.current,
+          start: "top 90%",
           once: true,
         },
       });
     });
     return () => ctx.revert();
-  }, [docs.length]);
+  }, []);
 
   return (
-    <section id="doctors" className="relative overflow-hidden py-12 lg:py-10">
+    <section id="doctors" className="relative overflow-hidden py-16 lg:py-20">
       <div className="mx-auto max-w-7xl px-6">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <Reveal variant="fade-left">
-            <SectionEyebrow>Meet the team</SectionEyebrow>
+            <SectionEyebrow>Chief Cardiologist</SectionEyebrow>
             <h2 className="mt-4 max-w-2xl font-display text-4xl font-bold leading-tight sm:text-5xl">
-              Cardiologists you can <span className="grad-text">trust with a lifetime</span>.
+              Cardiologist you can <span className="grad-text">trust with a lifetime</span>.
             </h2>
+            <p className="mt-3 max-w-xl text-base text-muted-foreground">
+              Direct clinical leadership, cutting-edge catheterization technology, and compassionate patient-first cardiac interventions.
+            </p>
           </Reveal>
           <AppointmentModal>
-            <button className="btn-lux inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground cursor-pointer">
-              Consult a doctor <ChevronRight className="h-4 w-4" />
+            <button className="btn-lux inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-glow hover:bg-primary/90 transition-all cursor-pointer">
+              <Calendar className="h-4 w-4" /> Book Consultation <ChevronRight className="h-4 w-4" />
             </button>
           </AppointmentModal>
         </div>
 
-        <div ref={gridRef} className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {docs.map((d) => (
-            <div key={d.n}>
-              <article 
-                className="group relative aspect-[3/4] w-full overflow-hidden rounded-[2.5rem] border border-border bg-black shadow-sm transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-[oklch(0.42_0.18_265)]/20"
-              >
-                <img src={d.img} alt={d.n} width={800} height={1000} loading="lazy" className="absolute inset-0 h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-80" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-70 transition-opacity duration-500 group-hover:opacity-90" />
-                
-                <span className="absolute left-6 top-6 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold tracking-widest text-white shadow-sm backdrop-blur-md">
-                  {d.exp} Exp
-                </span>
+        {/* Featured Doctor Luxury Card */}
+        <div
+          ref={cardRef}
+          className="mt-12 relative overflow-hidden rounded-[2.5rem] border border-border/80 bg-gradient-to-br from-card/95 via-card/60 to-background p-6 sm:p-10 lg:p-12 shadow-2xl backdrop-blur-xl"
+        >
+          {/* Ambient Lighting Gradients */}
+          <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-primary/10 blur-[120px]" />
+          <div className="pointer-events-none absolute -left-24 -bottom-24 h-96 w-96 rounded-full bg-[oklch(0.55_0.22_20)]/10 blur-[120px]" />
 
-                <div className="absolute inset-x-4 bottom-4 translate-y-4 overflow-hidden rounded-3xl border border-white/10 bg-white/10 p-6 backdrop-blur-xl transition-all duration-500 group-hover:translate-y-0 group-hover:bg-white/20 group-hover:border-white/30 shadow-2xl">
-                  <h3 className="font-display text-2xl font-bold text-white shadow-black/50 drop-shadow-md">{d.n}</h3>
-                  <p className="mt-1.5 text-sm font-medium tracking-wide text-[oklch(0.7_0.22_20)] drop-shadow-md">{d.r}</p>
+          <div className="relative z-10 grid gap-10 lg:grid-cols-12 lg:items-center">
+            {/* Visual Column */}
+            <div className="lg:col-span-5 flex flex-col items-center">
+              <div className="group relative aspect-[3/4] w-full max-w-md overflow-hidden rounded-[2.2rem] border border-white/15 bg-black shadow-2xl transition-all duration-500 hover:shadow-primary/25">
+                <img
+                  src={leadDoc.img}
+                  alt={leadDoc.n}
+                  width={800}
+                  height={1000}
+                  loading="lazy"
+                  className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-80 transition-opacity group-hover:opacity-90" />
+
+                {/* Available Status Pill */}
+                <div className="absolute left-5 top-5 flex items-center gap-2 rounded-full border border-white/20 bg-black/60 px-4 py-1.5 text-xs font-semibold tracking-wider text-white backdrop-blur-md shadow-lg">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  Available for Consultations
                 </div>
-              </article>
+
+                {/* Bottom Overlay Info */}
+                <div className="absolute inset-x-4 bottom-4 rounded-2xl border border-white/10 bg-white/10 p-4 sm:p-5 backdrop-blur-xl shadow-xl">
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-widest text-white/70">Clinical Director</p>
+                      <h4 className="font-display text-lg font-bold text-white drop-shadow-sm">{leadDoc.n}</h4>
+                    </div>
+                    <span className="shrink-0 rounded-xl bg-primary/90 px-3 py-1 text-xs font-bold text-white shadow-sm">
+                      {leadDoc.exp}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
-          ))}
+
+            {/* Details & Credentials Column */}
+            <div className="lg:col-span-7 flex flex-col justify-center space-y-6">
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1 text-xs font-bold tracking-wide text-primary">
+                  <Sparkles className="h-3.5 w-3.5" /> Chief Interventional Cardiologist
+                </div>
+                <h3 className="mt-3 font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
+                  {leadDoc.n}
+                </h3>
+                <p className="mt-2 text-base sm:text-lg font-semibold text-primary">
+                  {leadDoc.r}
+                </p>
+                <p className="mt-1 text-xs sm:text-sm font-medium tracking-wide text-muted-foreground">
+                  {leadDoc.degrees}
+                </p>
+              </div>
+
+              {/* Bio Narrative */}
+              <p className="text-sm sm:text-base leading-relaxed text-muted-foreground">
+                {leadDoc.bio}
+              </p>
+
+              {/* Key Clinical Focus Badges */}
+              <div className="grid gap-3 sm:grid-cols-2">
+                {[
+                  {
+                    title: "Complex Coronary Angioplasty",
+                    desc: "Radial & femoral PCI with cutting-edge drug-eluting stents.",
+                    icon: HeartPulse,
+                  },
+                  {
+                    title: "Pacemakers & Rhythm Devices",
+                    desc: "Single/dual chamber pacemakers, AICD & CRT implants.",
+                    icon: Activity,
+                  },
+                  {
+                    title: "24×7 Emergency Primary PCI",
+                    desc: "Rapid door-to-balloon acute heart attack management.",
+                    icon: Shield,
+                  },
+                  {
+                    title: "Heart Failure & Critical Care",
+                    desc: "Advanced guideline-directed cardiac therapy & ICU care.",
+                    icon: Stethoscope,
+                  },
+                ].map((spec) => {
+                  const Icon = spec.icon;
+                  return (
+                    <div
+                      key={spec.title}
+                      className="group/item flex items-start gap-3.5 rounded-2xl border border-border/60 bg-muted/30 p-3.5 transition-all duration-300 hover:border-primary/40 hover:bg-muted/60"
+                    >
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover/item:bg-primary group-hover/item:text-primary-foreground">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <h5 className="font-display text-sm font-semibold text-foreground">{spec.title}</h5>
+                        <p className="text-xs text-muted-foreground leading-snug mt-0.5">{spec.desc}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Milestones / Stats Row */}
+              <div className="grid grid-cols-3 gap-3 border-y border-border/60 py-4">
+                <div>
+                  <div className="font-display text-2xl sm:text-3xl font-bold text-foreground">22+</div>
+                  <div className="text-[11px] sm:text-xs text-muted-foreground uppercase tracking-wider mt-0.5">Years Experience</div>
+                </div>
+                <div>
+                  <div className="font-display text-2xl sm:text-3xl font-bold text-foreground">15,000+</div>
+                  <div className="text-[11px] sm:text-xs text-muted-foreground uppercase tracking-wider mt-0.5">Cardiac Procedures</div>
+                </div>
+                <div>
+                  <div className="font-display text-2xl sm:text-3xl font-bold text-foreground">24×7</div>
+                  <div className="text-[11px] sm:text-xs text-muted-foreground uppercase tracking-wider mt-0.5">Emergency Availability</div>
+                </div>
+              </div>
+
+              {/* CTA Action Buttons */}
+              <div className="flex flex-wrap items-center gap-4 pt-2">
+                <AppointmentModal>
+                  <button className="btn-lux inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-glow hover:bg-primary/90 transition-all cursor-pointer">
+                    <Calendar className="h-4 w-4" /> Book Consultation with Dr. Shahi <ArrowRight className="h-4 w-4" />
+                  </button>
+                </AppointmentModal>
+                <a
+                  href="tel:+919876510001"
+                  className="btn-lux inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-5 py-3 text-sm font-medium text-foreground hover:bg-muted transition-all"
+                >
+                  <Phone className="h-4 w-4 text-primary" /> Emergency / OPD Line
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -921,7 +1082,7 @@ function Testimonials() {
   }, []);
 
   const items = [
-    { n: "Ramesh K.", r: "CABG patient", q: "The team gave my father a second life. The care, the discipline, the warmth — it stays with you." },
+    { n: "Ramesh K.", r: "Angioplasty patient", q: "Dr. Prakash Chand Shahi and the hospital staff gave my father a second life. The care, the discipline, the warmth — it stays with you." },
     { n: "Anjali S.", r: "Angioplasty patient", q: "From the emergency call to going home in three days, everything felt calm and controlled." },
     { n: "Prof. D. Mishra", r: "Pacemaker patient", q: "A hospital that respects your time and your heart, in that order." },
   ];
@@ -1171,7 +1332,7 @@ function Appointment() {
             Take the first step. <br /> <span className="grad-text">We'll take the next hundred.</span>
           </h2>
           <p className="mt-5 max-w-xl text-lg text-muted-foreground">
-            Share a few details and our care team will confirm your appointment within the hour.
+            Share a few details and we will confirm your consultation with Dr. Prakash Chand Shahi within the hour.
             Or track your existing appointment status.
           </p>
           <div className="mt-8 grid gap-3 sm:grid-cols-2">
@@ -1415,7 +1576,7 @@ function FAQ() {
             The answers, <span className="grad-text">before the questions</span>.
           </h2>
           <p className="mt-5 text-muted-foreground">
-            Can't find what you need? Our care team is one call away.
+            Can't find what you need? Our clinic helpline is one call away.
           </p>
         </Reveal>
         <Reveal className="lg:col-span-7" variant="fade-right">

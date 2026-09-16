@@ -173,9 +173,16 @@ function MyAppointmentsPage() {
               <TableRow key={a.id}>
                 <TableCell className="font-medium">
                   <div className="text-sm font-bold text-foreground">{a.patientName}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {a.age} yrs, {a.gender}
+                  <div className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                    <span>{a.age} yrs, {a.gender}</span>
+                    {a.phone && (
+                      <>
+                        <span>•</span>
+                        <span className="text-primary font-medium">{a.phone}</span>
+                      </>
+                    )}
                   </div>
+                  {a.email && <div className="text-[11px] text-muted-foreground">{a.email}</div>}
                 </TableCell>
 
                 <TableCell className="text-sm font-medium">{a.department}</TableCell>

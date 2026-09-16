@@ -1,5 +1,7 @@
 import "./lib/error-capture";
 
+import fs from "fs/promises";
+import path from "path";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 
@@ -47,6 +49,69 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const url = new URL(request.url);
+
+      // 1. Direct Video File Upload API (/api/upload-video)
+      if (url.pathname === "/api/upload-video" && request.method === "POST") {
+        try {
+          const formData = await request.formData();
+          const file = formData.get("video") as File | null;
+          if (!file) {
+            return new Response(JSON.stringify({ error: "No video file provided" }), {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+
+          const bytes = await file.arrayBuffer();
+          const buffer = Buffer.from(bytes);
+          const originalExt = path.extname(file.name || "") || ".mp4";
+          const filename = `vlog-${Date.now()}-${Math.random().toString(36).slice(2, 8)}${originalExt}`;
+          const uploadDir = path.resolve(process.cwd(), "public/uploads/videos");
+          await fs.mkdir(uploadDir, { recursive: true });
+          await fs.writeFile(path.join(uploadDir, filename), buffer);
+
+          return new Response(JSON.stringify({ url: `/uploads/videos/${filename}` }), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        } catch (uploadErr) {
+          console.error("Video upload error:", uploadErr);
+          return new Response(JSON.stringify({ error: "Failed to process video upload" }), {
+            status: 500,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+      }
+
+      // 2. Direct Video Stream Handler (/uploads/videos/*)
+      if (url.pathname.startsWith("/uploads/videos/") && request.method === "GET") {
+        try {
+          const filePath = path.resolve(process.cwd(), "public", url.pathname.replace(/^\//, ""));
+          const fileHandle = await fs.readFile(filePath);
+          const ext = path.extname(filePath).toLowerCase();
+          const contentType =
+            ext === ".webm"
+              ? "video/webm"
+              : ext === ".mov"
+              ? "video/quicktime"
+              : ext === ".mkv"
+              ? "video/x-matroska"
+              : "video/mp4";
+
+          return new Response(fileHandle, {
+            status: 200,
+            headers: {
+              "Content-Type": contentType,
+              "Accept-Ranges": "bytes",
+              "Cache-Control": "public, max-age=31536000, immutable",
+            },
+          });
+        } catch {
+          // If file not found or reading error, fall through to main handler
+        }
+      }
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
@@ -54,7 +119,7 @@ export default {
       console.error(error);
       return new Response(renderErrorPage(error), {
         status: 500,
-        headers: { "content-type": "text/html; charset=utf-8" },
+        headers: { "Content-Type": "text/html; charset=utf-8" },
       });
     }
   },

@@ -30,9 +30,9 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
-      serverSelectionTimeoutMS: 5000,
-      connectTimeoutMS: 5000,
-      socketTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 1500,
+      connectTimeoutMS: 1500,
+      socketTimeoutMS: 2000,
     };
 
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongooseInstance) => {
@@ -104,6 +104,8 @@ const AppointmentSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
   patientId: { type: String, required: true },
   patientName: { type: String, required: true },
+  phone: { type: String, required: false },
+  email: { type: String, required: false },
   age: { type: Number, required: true },
   gender: { type: String, required: true, enum: ["Male", "Female", "Other"] },
   doctorId: { type: String, required: true },
@@ -123,10 +125,14 @@ const InvoiceSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
   patientId: { type: String, required: true },
   patientName: { type: String, required: true },
-  appointmentId: { type: String, required: true },
+  phone: { type: String },
+  service: { type: String },
+  paymentMethod: { type: String },
+  appointmentId: { type: String },
   amount: { type: Number, required: true },
   status: { type: String, required: true, enum: ["Paid", "Pending"] },
   date: { type: String, required: true },
+  createdAt: { type: String },
 }, { timestamps: true });
 
 const NotificationSchema = new mongoose.Schema({
@@ -178,3 +184,4 @@ export const NotificationModel = mongoose.models.Notification || mongoose.model(
 export const SessionModel = mongoose.models.Session || mongoose.model("Session", SessionSchema);
 export const SettingsModel = mongoose.models.Settings || mongoose.model("Settings", SettingsSchema);
 export const BlogModel = mongoose.models.Blog || mongoose.model("Blog", BlogSchema);
+export const VlogModel = BlogModel;

@@ -14,9 +14,10 @@ export interface PublicUser {
   role: Role;
   doctorId?: string;
   avatarInitials: string;
+  photoUrl?: string;
 }
 
-function toPublicUser(user: UserRecord): PublicUser {
+function toPublicUser(user: UserRecord, photoUrl?: string): PublicUser {
   return {
     id: user.id,
     name: user.name,
@@ -24,6 +25,7 @@ function toPublicUser(user: UserRecord): PublicUser {
     role: user.role,
     doctorId: user.doctorId,
     avatarInitials: user.avatarInitials,
+    photoUrl,
   };
 }
 
@@ -54,7 +56,8 @@ export const loginFn = createServerFn({ method: "POST" })
       maxAge: SESSION_TTL_MS / 1000,
     });
 
-    return { user: toPublicUser(user) };
+    const doctor = user.doctorId ? db.doctors.find((d) => d.id === user.doctorId) : undefined;
+    return { user: toPublicUser(user, doctor?.photoUrl) };
   });
 
 export const logoutFn = createServerFn({ method: "POST" }).handler(async () => {
@@ -85,7 +88,8 @@ export const getSessionFn = createServerFn({ method: "GET" }).handler(async () =
   const user = db.users.find((u) => u.id === session.userId);
   if (!user) return { user: null as PublicUser | null };
 
-  return { user: toPublicUser(user) };
+  const doctor = user.doctorId ? db.doctors.find((d) => d.id === user.doctorId) : undefined;
+  return { user: toPublicUser(user, doctor?.photoUrl) };
 });
 
 /** Throws a redirect-friendly error if there is no authenticated user with the given role. */

@@ -25,9 +25,17 @@ export function Loader() {
   const heartRef = useRef<SVGSVGElement>(null);
   const bpmRef = useRef<HTMLSpanElement>(null);
   const nameRef = useRef<HTMLDivElement>(null);
-  const [gone, setGone] = useState(false);
+  const [gone, setGone] = useState(() => {
+    if (typeof window !== "undefined") {
+      if (window.location.hash || sessionStorage.getItem("pulse_loader_seen")) {
+        return true;
+      }
+    }
+    return false;
+  });
 
   useEffect(() => {
+    if (gone) return;
     const ctx = gsap.context(() => {
       const path = ecgPathRef.current;
       const glow = glowRef.current;
@@ -54,7 +62,12 @@ export function Loader() {
             filter: "blur(16px)",
             duration: 0.9,
             ease: "power3.inOut",
-            onComplete: () => setGone(true),
+            onComplete: () => {
+              if (typeof window !== "undefined") {
+                sessionStorage.setItem("pulse_loader_seen", "1");
+              }
+              setGone(true);
+            },
           });
         },
       });

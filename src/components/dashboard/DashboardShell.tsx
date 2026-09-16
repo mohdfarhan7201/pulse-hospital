@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export interface NavItem {
   to: string;
@@ -57,7 +57,7 @@ export function DashboardShell({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 h-screen w-64 shrink-0 overflow-y-auto border-r bg-card transition-transform lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:h-screen lg:w-64 lg:translate-x-0",
+          "print:hidden fixed inset-y-0 left-0 z-40 h-screen w-64 shrink-0 overflow-y-auto border-r bg-card transition-transform lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:h-screen lg:w-64 lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
@@ -99,14 +99,14 @@ export function DashboardShell({
       {mobileOpen && (
         <button
           aria-label="Close menu"
-          className="fixed inset-0 z-30 bg-black/40 lg:hidden"
+          className="fixed inset-0 z-30 bg-black/40 lg:hidden print:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       {/* Main column */}
-      <div className="flex min-h-screen flex-1 flex-col lg:pl-64">
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b bg-card px-4 sm:px-6">
+      <div className="flex min-h-screen flex-1 flex-col lg:pl-64 print:pl-0 print:m-0 print:w-full">
+        <header className="print:hidden sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b bg-card px-4 sm:px-6">
           <div className="flex items-center gap-3">
             <button
               className="grid h-9 w-9 place-items-center rounded-lg border lg:hidden"
@@ -165,6 +165,7 @@ export function DashboardShell({
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 rounded-full pr-1">
                   <Avatar className="h-9 w-9 border">
+                    {user.photoUrl && <AvatarImage src={user.photoUrl} alt={user.name} className="object-cover" />}
                     <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
                       {user.avatarInitials}
                     </AvatarFallback>
@@ -186,7 +187,7 @@ export function DashboardShell({
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6">{children}</main>
+        <main className="flex-1 p-4 sm:p-6 print:p-0 print:m-0 print:w-full">{children}</main>
       </div>
     </div>
   );

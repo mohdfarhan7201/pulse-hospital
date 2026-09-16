@@ -9,11 +9,11 @@ import {
   Settings,
   User,
   Users,
-  BookOpen,
+  Video,
 } from "lucide-react";
 
 import { getSessionFn } from "@/lib/auth";
-import { listMyNotificationsFn } from "@/lib/api";
+import { listMyNotificationsFn, getMyProfileFn } from "@/lib/api";
 import { DashboardShell, type NavItem } from "@/components/dashboard/DashboardShell";
 
 const NAV_ITEMS: NavItem[] = [
@@ -23,7 +23,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/doctor/billing", label: "Billing", icon: <Receipt /> },
   { to: "/doctor/reports", label: "Reports", icon: <FileBarChart2 /> },
   { to: "/doctor/notifications", label: "Notifications", icon: <Bell /> },
-  { to: "/doctor/blogs", label: "Blogs", icon: <BookOpen /> },
+  { to: "/doctor/vlogs", label: "Vlogs", icon: <Video /> },
   { to: "/doctor/profile", label: "Profile", icon: <User /> },
   { to: "/doctor/settings", label: "Settings", icon: <Settings /> },
 ];
@@ -35,7 +35,8 @@ const TITLES: Record<string, string> = {
   "/doctor/billing": "Billing & Payments",
   "/doctor/reports": "Reports",
   "/doctor/notifications": "Notifications",
-  "/doctor/blogs": "Blogs",
+  "/doctor/vlogs": "Vlogs & Videos",
+  "/doctor/blogs": "Vlogs & Videos",
   "/doctor/profile": "Profile",
   "/doctor/settings": "Settings",
 };
@@ -85,13 +86,25 @@ function DoctorLayout() {
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
+  const { data: profile } = useQuery({
+    queryKey: ["my-profile"],
+    queryFn: () => getMyProfileFn(),
+    staleTime: 5000,
+  });
+
+  const activeUser = {
+    ...user,
+    photoUrl: profile?.photoUrl !== undefined ? profile.photoUrl : user.photoUrl,
+    name: profile?.name || user.name,
+  };
+
   return (
     <DashboardShell
       brandLabel="Doctor Dashboard"
       pageTitle={pageTitle}
       navItems={NAV_ITEMS}
       activeTo={location.pathname === "/doctor/" ? "/doctor" : location.pathname}
-      user={user}
+      user={activeUser}
       notificationCount={unreadCount}
     >
       <Outlet />

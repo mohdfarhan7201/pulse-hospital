@@ -12,9 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DoctorRouteRouteImport } from './routes/doctor/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VlogsIndexRouteImport } from './routes/vlogs/index'
 import { Route as DoctorIndexRouteImport } from './routes/doctor/index'
 import { Route as BlogsIndexRouteImport } from './routes/blogs/index'
+import { Route as VlogsVlogIdRouteImport } from './routes/vlogs/$vlogId'
 import { Route as SpecialtiesSlugRouteImport } from './routes/specialties/$slug'
+import { Route as DoctorVlogsRouteImport } from './routes/doctor/vlogs'
 import { Route as DoctorSettingsRouteImport } from './routes/doctor/settings'
 import { Route as DoctorScheduleRouteImport } from './routes/doctor/schedule'
 import { Route as DoctorReportsRouteImport } from './routes/doctor/reports'
@@ -42,6 +45,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VlogsIndexRoute = VlogsIndexRouteImport.update({
+  id: '/vlogs/',
+  path: '/vlogs/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DoctorIndexRoute = DoctorIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -52,10 +60,20 @@ const BlogsIndexRoute = BlogsIndexRouteImport.update({
   path: '/blogs/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VlogsVlogIdRoute = VlogsVlogIdRouteImport.update({
+  id: '/vlogs/$vlogId',
+  path: '/vlogs/$vlogId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SpecialtiesSlugRoute = SpecialtiesSlugRouteImport.update({
   id: '/specialties/$slug',
   path: '/specialties/$slug',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DoctorVlogsRoute = DoctorVlogsRouteImport.update({
+  id: '/vlogs',
+  path: '/vlogs',
+  getParentRoute: () => DoctorRouteRoute,
 } as any)
 const DoctorSettingsRoute = DoctorSettingsRouteImport.update({
   id: '/settings',
@@ -128,9 +146,12 @@ export interface FileRoutesByFullPath {
   '/doctor/reports': typeof DoctorReportsRoute
   '/doctor/schedule': typeof DoctorScheduleRoute
   '/doctor/settings': typeof DoctorSettingsRoute
+  '/doctor/vlogs': typeof DoctorVlogsRoute
   '/specialties/$slug': typeof SpecialtiesSlugRoute
+  '/vlogs/$vlogId': typeof VlogsVlogIdRoute
   '/blogs/': typeof BlogsIndexRoute
   '/doctor/': typeof DoctorIndexRoute
+  '/vlogs/': typeof VlogsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -146,9 +167,12 @@ export interface FileRoutesByTo {
   '/doctor/reports': typeof DoctorReportsRoute
   '/doctor/schedule': typeof DoctorScheduleRoute
   '/doctor/settings': typeof DoctorSettingsRoute
+  '/doctor/vlogs': typeof DoctorVlogsRoute
   '/specialties/$slug': typeof SpecialtiesSlugRoute
+  '/vlogs/$vlogId': typeof VlogsVlogIdRoute
   '/blogs': typeof BlogsIndexRoute
   '/doctor': typeof DoctorIndexRoute
+  '/vlogs': typeof VlogsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -166,9 +190,12 @@ export interface FileRoutesById {
   '/doctor/reports': typeof DoctorReportsRoute
   '/doctor/schedule': typeof DoctorScheduleRoute
   '/doctor/settings': typeof DoctorSettingsRoute
+  '/doctor/vlogs': typeof DoctorVlogsRoute
   '/specialties/$slug': typeof SpecialtiesSlugRoute
+  '/vlogs/$vlogId': typeof VlogsVlogIdRoute
   '/blogs/': typeof BlogsIndexRoute
   '/doctor/': typeof DoctorIndexRoute
+  '/vlogs/': typeof VlogsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -187,9 +214,12 @@ export interface FileRouteTypes {
     | '/doctor/reports'
     | '/doctor/schedule'
     | '/doctor/settings'
+    | '/doctor/vlogs'
     | '/specialties/$slug'
+    | '/vlogs/$vlogId'
     | '/blogs/'
     | '/doctor/'
+    | '/vlogs/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -205,9 +235,12 @@ export interface FileRouteTypes {
     | '/doctor/reports'
     | '/doctor/schedule'
     | '/doctor/settings'
+    | '/doctor/vlogs'
     | '/specialties/$slug'
+    | '/vlogs/$vlogId'
     | '/blogs'
     | '/doctor'
+    | '/vlogs'
   id:
     | '__root__'
     | '/'
@@ -224,9 +257,12 @@ export interface FileRouteTypes {
     | '/doctor/reports'
     | '/doctor/schedule'
     | '/doctor/settings'
+    | '/doctor/vlogs'
     | '/specialties/$slug'
+    | '/vlogs/$vlogId'
     | '/blogs/'
     | '/doctor/'
+    | '/vlogs/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -236,7 +272,9 @@ export interface RootRouteChildren {
   AdminSettingsRoute: typeof AdminSettingsRoute
   BlogsBlogIdRoute: typeof BlogsBlogIdRoute
   SpecialtiesSlugRoute: typeof SpecialtiesSlugRoute
+  VlogsVlogIdRoute: typeof VlogsVlogIdRoute
   BlogsIndexRoute: typeof BlogsIndexRoute
+  VlogsIndexRoute: typeof VlogsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -262,6 +300,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vlogs/': {
+      id: '/vlogs/'
+      path: '/vlogs'
+      fullPath: '/vlogs/'
+      preLoaderRoute: typeof VlogsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/doctor/': {
       id: '/doctor/'
       path: '/'
@@ -276,12 +321,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/vlogs/$vlogId': {
+      id: '/vlogs/$vlogId'
+      path: '/vlogs/$vlogId'
+      fullPath: '/vlogs/$vlogId'
+      preLoaderRoute: typeof VlogsVlogIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/specialties/$slug': {
       id: '/specialties/$slug'
       path: '/specialties/$slug'
       fullPath: '/specialties/$slug'
       preLoaderRoute: typeof SpecialtiesSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/doctor/vlogs': {
+      id: '/doctor/vlogs'
+      path: '/vlogs'
+      fullPath: '/doctor/vlogs'
+      preLoaderRoute: typeof DoctorVlogsRouteImport
+      parentRoute: typeof DoctorRouteRoute
     }
     '/doctor/settings': {
       id: '/doctor/settings'
@@ -373,6 +432,7 @@ interface DoctorRouteRouteChildren {
   DoctorReportsRoute: typeof DoctorReportsRoute
   DoctorScheduleRoute: typeof DoctorScheduleRoute
   DoctorSettingsRoute: typeof DoctorSettingsRoute
+  DoctorVlogsRoute: typeof DoctorVlogsRoute
   DoctorIndexRoute: typeof DoctorIndexRoute
 }
 
@@ -386,6 +446,7 @@ const DoctorRouteRouteChildren: DoctorRouteRouteChildren = {
   DoctorReportsRoute: DoctorReportsRoute,
   DoctorScheduleRoute: DoctorScheduleRoute,
   DoctorSettingsRoute: DoctorSettingsRoute,
+  DoctorVlogsRoute: DoctorVlogsRoute,
   DoctorIndexRoute: DoctorIndexRoute,
 }
 
@@ -400,7 +461,9 @@ const rootRouteChildren: RootRouteChildren = {
   AdminSettingsRoute: AdminSettingsRoute,
   BlogsBlogIdRoute: BlogsBlogIdRoute,
   SpecialtiesSlugRoute: SpecialtiesSlugRoute,
+  VlogsVlogIdRoute: VlogsVlogIdRoute,
   BlogsIndexRoute: BlogsIndexRoute,
+  VlogsIndexRoute: VlogsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

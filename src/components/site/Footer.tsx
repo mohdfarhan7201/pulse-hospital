@@ -2,6 +2,11 @@ import { useRef, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 import { getHospitalSettingsFn } from "@/lib/api";
 import { AppointmentModal } from "@/components/site/AppointmentModal";
 import logo1 from "@/assets/logo1.png";
@@ -75,7 +80,7 @@ export function Footer() {
           <div className="relative z-10 flex flex-col items-center justify-between gap-10 md:flex-row">
             <div className="text-center transition-transform duration-500 group-hover:translate-x-4 md:text-left">
               <h2 className="font-display text-4xl font-bold text-white sm:text-5xl lg:text-6xl">Your Heart, <br/>Our Priority.</h2>
-              <p className="mt-6 text-xl text-white/80">Book a consultation with our top specialists today.</p>
+              <p className="mt-6 text-xl text-white/80">Book a consultation with Dr. Prakash Chand Shahi today.</p>
             </div>
             <AppointmentModal>
               <button className="flex h-14 shrink-0 items-center justify-center gap-3 rounded-full bg-white px-8 text-lg font-bold text-[oklch(0.4_0.18_265)] shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl active:scale-95 group-hover:-translate-x-2 cursor-pointer">
@@ -144,7 +149,7 @@ export function Footer() {
               { label: "About Us", href: "/#about" },
               { label: "Our Services", href: "/#services" },
               { label: "Technology", href: "/#technology" },
-              { label: "Our Doctors", href: "/#doctors" },
+              { label: "Our Doctor", href: "/#doctors" },
               { label: "Patient Stories", href: "/#stories" }
             ]} />
             <div>

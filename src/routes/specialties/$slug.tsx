@@ -212,7 +212,7 @@ function SpecialtyPage() {
                 </div>
                 <div>
                   <div className="text-3xl font-bold text-white">Expert</div>
-                  <div className="text-sm font-medium text-white/60 uppercase tracking-wider">Care Team</div>
+                  <div className="text-sm font-medium text-white/60 uppercase tracking-wider">Cardiac Care</div>
                 </div>
               </div>
             </div>
@@ -256,7 +256,7 @@ function SpecialtyPage() {
             <div className="absolute inset-0 rounded-full animate-ping bg-primary/40" />
             <MainIcon className="h-8 w-8 text-primary relative z-10" />
           </div>
-          <h2 className="text-3xl md:text-5xl font-display font-bold text-foreground mb-8">Why Choose Our {data.title} Team?</h2>
+          <h2 className="text-3xl md:text-5xl font-display font-bold text-foreground mb-8">Why Choose Pulse for {data.title}?</h2>
           <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed font-light">
             "{data.expertise}"
           </p>

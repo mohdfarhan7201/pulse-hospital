@@ -16,7 +16,11 @@ import {
   Save,
   User,
   QrCode,
+  Upload,
+  Trash2,
+  Camera,
 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 import { getHospitalSettingsFn, updateHospitalSettingsFn } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -47,6 +51,7 @@ function DoctorSettingsPage() {
   const [department, setDepartment] = useState("Cardiology");
   const [experience, setExperience] = useState("12");
   const [qualification, setQualification] = useState("MD, DM (Cardiology), FACC");
+  const [photoUrl, setPhotoUrl] = useState<string>("");
 
   // General Settings State
   const [hospitalName, setHospitalName] = useState("Pulse Heart Centre");
@@ -72,6 +77,7 @@ function DoctorSettingsPage() {
       setDepartment(profile.department || "");
       setSpecialty(profile.specialty || "");
       setQualification(profile.bio || "");
+      if (profile.photoUrl) setPhotoUrl(profile.photoUrl);
     }
 
     if (settings) {
@@ -107,6 +113,7 @@ function DoctorSettingsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["doctor-profile"] });
       queryClient.invalidateQueries({ queryKey: ["my-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["public-doctors"] });
       router.invalidate();
     }
   });
@@ -120,6 +127,56 @@ function DoctorSettingsPage() {
     },
   });
 
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file (PNG, JPG, JPEG, WEBP)");
+      return;
+    }
+
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("Image file size should be less than 8MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_DIM = 600;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_DIM) {
+            height = Math.round((height * MAX_DIM) / width);
+            width = MAX_DIM;
+          }
+        } else {
+          if (height > MAX_DIM) {
+            width = Math.round((width * MAX_DIM) / height);
+            height = MAX_DIM;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const resizedDataUrl = canvas.toDataURL("image/jpeg", 0.88);
+          setPhotoUrl(resizedDataUrl);
+          toast.success("Photo selected! Click 'Save Profile Details' to apply.");
+        }
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSaveProfile = async () => {
     try {
       await updateMutation.mutateAsync({
@@ -129,7 +186,8 @@ function DoctorSettingsPage() {
         experienceYears: Number(experience),
         department,
         specialty,
-        qualification
+        qualification,
+        photoUrl,
       });
       triggerSaved("Profile details saved!");
     } catch (e: any) {
@@ -393,6 +451,63 @@ function DoctorSettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
+              {/* Profile Photo Upload Section */}
+              <div className="flex flex-col sm:flex-row items-center gap-5 p-4 rounded-xl border bg-muted/20">
+                <div className="relative group">
+                  <Avatar className="h-24 w-24 border-2 border-primary/20 shadow-md">
+                    {photoUrl && <AvatarImage src={photoUrl} alt={docName} className="object-cover" />}
+                    <AvatarFallback className="bg-primary/10 text-2xl font-bold text-primary">
+                      {docName
+                        .replace(/^Dr\.?\s*/i, "")
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase() || "DR"}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+                <div className="space-y-2 text-center sm:text-left flex-1">
+                  <div>
+                    <h4 className="text-sm font-semibold">Doctor Profile Photo</h4>
+                    <p className="text-xs text-muted-foreground">
+                      This photo will appear on your portal header, doctor profile page, and the public hospital website.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-start">
+                    <input
+                      type="file"
+                      id="doctor-photo-input"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handlePhotoUpload}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => document.getElementById("doctor-photo-input")?.click()}
+                      className="gap-1.5 text-xs"
+                    >
+                      <Upload className="h-3.5 w-3.5" />
+                      {photoUrl ? "Change Photo" : "Upload Photo"}
+                    </Button>
+                    {photoUrl && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setPhotoUrl("")}
+                        className="text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30 gap-1"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Remove Photo
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="dname">Doctor Name</Label>

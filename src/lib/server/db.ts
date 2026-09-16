@@ -72,6 +72,8 @@ export interface AppointmentRecord {
   id: string;
   patientId: string;
   patientName: string;
+  phone?: string;
+  email?: string;
   age: number;
   gender: "Male" | "Female" | "Other";
   doctorId: string;
@@ -91,10 +93,14 @@ export interface InvoiceRecord {
   id: string;
   patientId: string;
   patientName: string;
+  phone?: string;
+  service?: string;
   appointmentId: string;
   amount: number;
   status: "Paid" | "Pending";
+  paymentMethod?: string;
   date: string;
+  createdAt?: string;
 }
 
 export interface NotificationRecord {
@@ -120,6 +126,8 @@ export interface BlogRecord {
   createdAt: string;
   authorId: string;
 }
+
+export type VlogRecord = BlogRecord;
 
 export interface HospitalSettingsRecord {
   hospitalName: string;
@@ -243,9 +251,13 @@ import {
 let isMongoConnecting = false;
 let isMongoConnected = false;
 let lastMongoSync = 0;
+let lastMongoAttempt = 0;
+const MONGO_COOLDOWN_MS = 60_000; // 1 minute cooldown after failure
 
 export async function syncMongoDb() {
   if (isMongoConnecting || isMongoConnected) return;
+  if (Date.now() - lastMongoAttempt < MONGO_COOLDOWN_MS) return;
+  lastMongoAttempt = Date.now();
   isMongoConnecting = true;
   try {
     await connectToDatabase();
@@ -259,7 +271,7 @@ export async function syncMongoDb() {
     }
     lastMongoSync = Date.now();
   } catch (err: any) {
-    console.error(`[MongoDB] Connection failed: ${err.message || err}`);
+    console.warn(`[MongoDB] Sync failed, using fast local store: ${err.message || err}`);
   } finally {
     isMongoConnecting = false;
   }
@@ -274,8 +286,10 @@ async function saveCacheToMongo() {
       ...cache.patients.map((p) => PatientModel.updateOne({ id: p.id }, p, { upsert: true })),
       ...cache.appointments.map((a) => AppointmentModel.updateOne({ id: a.id }, a, { upsert: true })),
       ...cache.invoices.map((i) => InvoiceModel.updateOne({ id: i.id }, i, { upsert: true })),
+      InvoiceModel.deleteMany({ id: { $nin: cache.invoices.map((i) => i.id) } }),
       ...cache.notifications.map((n) => NotificationModel.updateOne({ id: n.id }, n, { upsert: true })),
       ...cache.blogs.map((b) => BlogModel.updateOne({ id: b.id }, b, { upsert: true })),
+      BlogModel.deleteMany({ id: { $nin: cache.blogs.map((b) => b.id) } }),
       ...Object.entries(cache.sessions).map(([sessionId, s]) =>
         SessionModel.updateOne({ sessionId }, { sessionId, ...s }, { upsert: true })
       ),
@@ -359,6 +373,8 @@ async function loadCacheFromMongo() {
         id: a.id,
         patientId: a.patientId,
         patientName: a.patientName,
+        phone: a.phone,
+        email: a.email,
         age: a.age,
         gender: a.gender,
         doctorId: a.doctorId,
@@ -377,10 +393,14 @@ async function loadCacheFromMongo() {
         id: i.id,
         patientId: i.patientId,
         patientName: i.patientName,
+        phone: i.phone,
+        service: i.service,
         appointmentId: i.appointmentId,
         amount: i.amount,
         status: i.status,
+        paymentMethod: i.paymentMethod,
         date: i.date,
+        createdAt: i.createdAt,
       })),
       notifications: notifications.map((n: any) => ({
         id: n.id,
@@ -418,17 +438,40 @@ async function loadCacheFromMongo() {
   }
 }
 
+let lastDiskMtime = 0;
+
 async function load(): Promise<DbShape> {
-  if (!isMongoConnected && !isMongoConnecting) {
+  // 1. If cache is already in memory, serve immediately (0ms)
+  if (cache) {
+    if (isMongoConnected && Date.now() - lastMongoSync > 5000) {
+      loadCacheFromMongo().then(() => { lastMongoSync = Date.now(); }).catch(() => {});
+    }
+    return cache;
+  }
+
+  // 2. Fast local disk load (~1ms)
+  try {
+    if (existsSync(DB_PATH)) {
+      const raw = readFileSync(DB_PATH, "utf-8");
+      cache = JSON.parse(raw) as DbShape;
+      const { statSync } = await import("node:fs");
+      lastDiskMtime = statSync(DB_PATH).mtimeMs;
+
+      // Trigger background mongo sync if not connected without blocking the user
+      if (!isMongoConnected && !isMongoConnecting && (Date.now() - lastMongoAttempt > MONGO_COOLDOWN_MS)) {
+        syncMongoDb().catch(() => {});
+      }
+      return cache;
+    }
+  } catch {}
+
+  // 3. Fallback: only if cache is completely empty, attempt mongo sync
+  if (!isMongoConnected && !isMongoConnecting && (Date.now() - lastMongoAttempt > MONGO_COOLDOWN_MS)) {
     try {
       await syncMongoDb();
     } catch {}
-  } else if (isMongoConnected && Date.now() - lastMongoSync > 2000) {
-    try {
-      await loadCacheFromMongo();
-      lastMongoSync = Date.now();
-    } catch {}
   }
+
   if (cache) return cache;
   try {
     if (existsSync(DB_PATH)) {
@@ -458,6 +501,7 @@ async function persist() {
     const dir = dirname(DB_PATH);
     try { if (!existsSync(dir)) mkdirSync(dir, { recursive: true }); } catch(e) {}
     writeFileSync(DB_PATH, JSON.stringify(cache, null, 2), "utf-8");
+    lastDiskMtime = Date.now() + 1000;
   } catch {
     // In edge/serverless runtimes without a writable filesystem, we silently
     // keep working off the in-memory cache for the life of the process.

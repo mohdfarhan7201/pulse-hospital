@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 
-import { getDb, saveDb, newId, hashPassword, verifyPassword, type AppointmentStatus, type AppointmentRecord, type BlogRecord } from "./server/db";
+import { getDb, saveDb, newId, hashPassword, verifyPassword, type AppointmentStatus, type AppointmentRecord, type BlogRecord, type VlogRecord, type InvoiceRecord } from "./server/db";
 import { getSessionFn } from "./auth";
 
-export type { AppointmentStatus, AppointmentRecord, BlogRecord };
+export type { AppointmentStatus, AppointmentRecord, BlogRecord, VlogRecord, InvoiceRecord };
 
 function getAvatarInitials(name: string): string {
   return (
@@ -161,45 +161,62 @@ export const createPublicAppointmentFn = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const db = await getDb();
 
-    const doctor = db.doctors.find((d) => d.id === data.doctorId);
-    const doctorName = doctor ? doctor.name : "Unassigned";
+    const doctor = db.doctors.find((d) => d.id === data.doctorId) || (db.doctors.length > 0 ? db.doctors[0] : null);
+    const doctorId = doctor ? doctor.id : (data.doctorId || "doc-prakash");
+    const doctorName = doctor ? doctor.name : "Dr. Prakash Chand Shahi";
 
     const cleanPhone = data.phone.trim();
+    const cleanEmail = data.email?.trim() || "";
+    const cleanName = data.patientName.trim();
+    const cleanDepartment = data.department || doctor?.department || "Cardiology";
+
+    // Match patient by both phone and name (case-insensitive)
+    // If name matches, it is the same patient returning for an appointment
     let patient = db.patients.find(
-      (p) => p.phone.replace(/\D/g, "") === cleanPhone.replace(/\D/g, "")
+      (p) =>
+        p.phone.replace(/\D/g, "") === cleanPhone.replace(/\D/g, "") &&
+        p.name.trim().toLowerCase() === cleanName.toLowerCase()
     );
 
     if (!patient) {
+      // New patient (or same phone with a different person/name)
       patient = {
         id: newId("pat"),
-        name: data.patientName.trim(),
+        name: cleanName,
         age: data.age || 30,
         gender: data.gender || "Male",
         phone: cleanPhone,
-        email: data.email?.trim() || "",
-        department: data.department || doctor?.department || "General Medicine",
-        primaryDoctorId: data.doctorId,
+        email: cleanEmail,
+        department: cleanDepartment,
+        primaryDoctorId: doctorId,
         lastVisit: data.date,
         createdAt: new Date().toISOString().slice(0, 10),
       };
       db.patients.push(patient);
     } else {
+      // Existing patient returning for follow-up
+      if (cleanEmail) patient.email = cleanEmail;
+      if (data.age) patient.age = data.age;
+      if (data.gender) patient.gender = data.gender;
+      if (cleanDepartment) patient.department = cleanDepartment;
       patient.lastVisit = data.date;
-      if (data.doctorId) patient.primaryDoctorId = data.doctorId;
+      patient.primaryDoctorId = doctorId;
     }
 
     const apptId = newId("apt");
     const appointment: AppointmentRecord = {
       id: apptId,
       patientId: patient.id,
-      patientName: data.patientName.trim(),
+      patientName: cleanName,
+      phone: cleanPhone,
+      email: cleanEmail,
       age: patient.age,
       gender: patient.gender,
-      doctorId: data.doctorId,
+      doctorId: doctorId,
       doctorName,
-      department: data.department || doctor?.department || "General Medicine",
+      department: cleanDepartment,
       date: data.date,
-      time: "",
+      time: data.time || "10:00 AM",
       tokenNo: "",
       status: "Pending",
       address: data.address,
@@ -233,6 +250,23 @@ export const createPublicAppointmentFn = createServerFn({ method: "POST" })
         read: false,
       });
     }
+
+    // Automatically generate invoice for the appointment
+    const consultationFee = db.settings?.normalFee ?? 500;
+    const invoiceId = newId("inv");
+    db.invoices.push({
+      id: invoiceId,
+      patientId: patient.id,
+      patientName: cleanName,
+      phone: cleanPhone,
+      service: `Consultation - ${cleanDepartment}`,
+      paymentMethod: "Pending at Counter",
+      appointmentId: apptId,
+      amount: consultationFee,
+      status: "Pending",
+      date: data.date,
+      createdAt: new Date().toISOString(),
+    });
 
     await saveDb();
     return { success: true, appointmentId: apptId, appointment };
@@ -416,36 +450,198 @@ export const updateAppointmentStatusFn = createServerFn({ method: "POST" })
 export const getBillingFn = createServerFn({ method: "GET" }).handler(async () => {
   await requireDoctor();
   const db = await getDb();
+
+  // Ensure every appointment has an invoice
+  const existingApptInvoiceIds = new Set(db.invoices.map((i) => i.appointmentId).filter(Boolean));
+  let modified = false;
+
+  for (const appt of db.appointments) {
+    if (!existingApptInvoiceIds.has(appt.id)) {
+      const fee = db.settings?.normalFee ?? 500;
+      db.invoices.push({
+        id: `inv-${appt.id.replace(/^apt-/, "")}`,
+        patientId: appt.patientId,
+        patientName: appt.patientName,
+        phone: appt.phone,
+        service: `Consultation - ${appt.department}`,
+        appointmentId: appt.id,
+        amount: fee,
+        status: appt.status === "Completed" ? "Paid" : "Pending",
+        date: appt.date,
+        createdAt: appt.createdAt || new Date().toISOString(),
+      });
+      modified = true;
+    }
+  }
+
+  // Remove obsolete dummy invoices from patients/appointments that no longer exist
+  const validApptIds = new Set(db.appointments.map((a) => a.id));
+  const beforeCount = db.invoices.length;
+  db.invoices = db.invoices.filter((inv) => !inv.appointmentId || validApptIds.has(inv.appointmentId));
+  if (db.invoices.length !== beforeCount) {
+    modified = true;
+  }
+
+  if (modified) {
+    await saveDb();
+  }
+
   const invoices = [...db.invoices].sort((a, b) => (a.date < b.date ? 1 : -1));
   const totalPaid = invoices.filter((i) => i.status === "Paid").reduce((s, i) => s + i.amount, 0);
-  const totalPending = invoices
-    .filter((i) => i.status === "Pending")
-    .reduce((s, i) => s + i.amount, 0);
-  return { invoices, totalPaid, totalPending };
+  const totalPending = invoices.filter((i) => i.status === "Pending").reduce((s, i) => s + i.amount, 0);
+
+  return { invoices, totalPaid, totalPending, settings: db.settings };
 });
+
+export const updateInvoiceStatusFn = createServerFn({ method: "POST" })
+  .validator((data: { id: string; status: "Paid" | "Pending"; paymentMethod?: string }) => data)
+  .handler(async ({ data }) => {
+    await requireDoctor();
+    const db = await getDb();
+    const inv = db.invoices.find((i) => i.id === data.id);
+    if (!inv) throw new Error("Invoice not found");
+    inv.status = data.status;
+    if (data.paymentMethod) {
+      inv.paymentMethod = data.paymentMethod;
+    }
+    await saveDb();
+    return inv;
+  });
+
+export const createInvoiceFn = createServerFn({ method: "POST" })
+  .validator(
+    (data: {
+      patientName: string;
+      patientId?: string;
+      phone?: string;
+      service: string;
+      amount: number;
+      status: "Paid" | "Pending";
+      paymentMethod?: string;
+      date?: string;
+    }) => data
+  )
+  .handler(async ({ data }) => {
+    await requireDoctor();
+    const db = await getDb();
+    const cleanName = data.patientName.trim();
+    const cleanPhone = data.phone?.trim() || "";
+
+    let patient = data.patientId ? db.patients.find((p) => p.id === data.patientId) : undefined;
+    if (!patient && cleanPhone) {
+      patient = db.patients.find(
+        (p) => p.phone.replace(/\D/g, "") === cleanPhone.replace(/\D/g, "")
+      );
+    }
+    const patId = patient ? patient.id : (data.patientId || newId("pat"));
+
+    const dateStr = data.date || new Date().toISOString().slice(0, 10);
+    const invoiceId = newId("inv");
+    const newInvoice: InvoiceRecord = {
+      id: invoiceId,
+      patientId: patId,
+      patientName: cleanName,
+      phone: cleanPhone || (patient?.phone ?? ""),
+      service: data.service.trim() || "OPD Consultation",
+      paymentMethod: data.paymentMethod || "Cash",
+      appointmentId: "",
+      amount: Number(data.amount) || 0,
+      status: data.status,
+      date: dateStr,
+      createdAt: new Date().toISOString(),
+    };
+
+    db.invoices.push(newInvoice);
+    await saveDb();
+    return newInvoice;
+  });
+
+export const deleteInvoiceFn = createServerFn({ method: "POST" })
+  .validator((id: string) => id)
+  .handler(async ({ data: id }) => {
+    await requireDoctor();
+    const db = await getDb();
+    db.invoices = db.invoices.filter((i) => i.id !== id);
+    await saveDb();
+    return { success: true };
+  });
 
 export const getAdminReportsFn = createServerFn({ method: "GET" }).handler(async () => {
   await requireDoctor();
   const db = await getDb();
+
+  const totalAppointments = db.appointments.length;
+  const totalPatients = db.patients.length;
+
+  const ALL_STATUSES = ["Confirmed", "In Consultation", "Waiting", "Pending", "Completed", "Cancelled"];
   const statusCounts: Record<string, number> = {};
+  for (const s of ALL_STATUSES) {
+    statusCounts[s] = 0;
+  }
   for (const a of db.appointments) {
     statusCounts[a.status] = (statusCounts[a.status] ?? 0) + 1;
   }
-  const doctorLoad = db.doctors
-    .map((d) => ({
-      name: d.name,
-      department: d.department,
-      appointments: db.appointments.filter((a) => a.doctorId === d.id).length,
-      patients: db.patients.filter((p) => p.primaryDoctorId === d.id).length,
-    }))
-    .sort((a, b) => b.appointments - a.appointments);
+
+  const completedCount = statusCounts["Completed"] || 0;
+  const completionRate = totalAppointments > 0 ? Math.round((completedCount / totalAppointments) * 100) : 0;
+
+  // Department counts
+  const departmentCounts: Record<string, number> = {};
+  for (const a of db.appointments) {
+    const dept = a.department || "Cardiology";
+    departmentCounts[dept] = (departmentCounts[dept] ?? 0) + 1;
+  }
+
+  // Financial statistics from real invoices
+  const totalRevenue = db.invoices.reduce((s, i) => s + i.amount, 0);
+  const paidRevenue = db.invoices.filter((i) => i.status === "Paid").reduce((s, i) => s + i.amount, 0);
+  const pendingRevenue = db.invoices.filter((i) => i.status === "Pending").reduce((s, i) => s + i.amount, 0);
+
+  // Demographics: Gender breakdown
+  const genderCounts: Record<string, number> = { Male: 0, Female: 0, Other: 0 };
+  for (const p of db.patients) {
+    if (p.gender in genderCounts) {
+      genderCounts[p.gender] = (genderCounts[p.gender] ?? 0) + 1;
+    } else {
+      genderCounts["Other"] = (genderCounts["Other"] ?? 0) + 1;
+    }
+  }
+
+  // Recent consultation reports list
+  const recentConsultations = [...db.appointments]
+    .sort((a, b) => (a.date < b.date ? 1 : -1))
+    .map((a) => {
+      const inv = db.invoices.find((i) => i.appointmentId === a.id);
+      return {
+        id: a.id,
+        patientName: a.patientName,
+        phone: a.phone || "",
+        age: a.age,
+        gender: a.gender,
+        department: a.department,
+        doctorName: a.doctorName || "Dr. Prakash Chand Shahi",
+        date: a.date,
+        time: a.time || "10:00 AM",
+        status: a.status,
+        amount: inv ? inv.amount : (db.settings?.normalFee ?? 500),
+        paymentStatus: inv ? inv.status : "Pending",
+      };
+    });
 
   return {
-    totalAppointments: db.appointments.length,
-    totalPatients: db.patients.length,
-    totalDoctors: db.doctors.length,
+    totalAppointments,
+    totalPatients,
+    totalRevenue,
+    paidRevenue,
+    pendingRevenue,
+    completedCount,
+    completionRate,
     statusCounts,
-    doctorLoad,
+    departmentCounts,
+    genderCounts,
+    recentConsultations,
+    hospitalName: db.settings?.hospitalName || "Pulse Heart Centre",
+    helplinePhone: db.settings?.helplinePhone || "+91 98765 43210",
   };
 });
 
@@ -453,50 +649,73 @@ export const getAdminReportsFn = createServerFn({ method: "GET" }).handler(async
 // Doctor
 // ---------------------------------------------------------------------------
 
-export const getDoctorOverviewFn = createServerFn({ method: "GET" }).handler(async () => {
-  const user = await requireDoctor();
-  const db = await getDb();
-  const today = new Date().toISOString().slice(0, 10);
-  const doctorId = user.doctorId!;
+export const getDoctorOverviewFn = createServerFn({ method: "GET" })
+  .validator((data?: { date?: string }) => data)
+  .handler(async ({ data }) => {
+    const user = await requireDoctor();
+    const db = await getDb();
+    const today = new Date().toISOString().slice(0, 10);
+    const doctorId = user.doctorId!;
 
-  const myAppointments = db.appointments.filter((a) => a.doctorId === doctorId);
-  const todays = myAppointments
-    .filter((a) => a.date === today)
-    .sort((a, b) => a.time.localeCompare(b.time));
+    const myAppointments = db.appointments.filter((a) => a.doctorId === doctorId);
+    const targetDate = data?.date || today;
 
-  const upcoming = todays.filter((a) => a.status === "Confirmed" || a.status === "Pending");
-  const completed = myAppointments.filter((a) => a.status === "Completed");
-  const waiting = myAppointments.filter((a) => a.status === "Waiting");
+    const todays = myAppointments
+      .filter((a) => a.date === today)
+      .sort((a, b) => a.time.localeCompare(b.time));
 
-  const week = lastNDaysLabelsAndDates(7).map(({ label, date }) => ({
-    day: label,
-    patients: new Set(
-      myAppointments.filter((a) => a.date === date).map((a) => a.patientId),
-    ).size,
-  }));
+    const selectedAppointments = (targetDate === "all"
+      ? myAppointments
+      : myAppointments.filter((a) => a.date === targetDate)
+    ).sort((a, b) => (a.date === b.date ? a.time.localeCompare(b.time) : (a.date < b.date ? 1 : -1)));
 
-  const myPatients = db.patients.filter((p) => p.primaryDoctorId === doctorId);
-  const newPatients = myPatients.filter(
-    (p) => new Date(p.createdAt).getTime() > Date.now() - 1000 * 60 * 60 * 24 * 30,
-  );
+    const upcoming = selectedAppointments.filter((a) => a.status === "Confirmed" || a.status === "Pending");
+    const completed = selectedAppointments.filter((a) => a.status === "Completed");
+    const waiting = selectedAppointments.filter((a) => a.status === "Waiting");
 
-  const recentPatients = [...myPatients]
-    .sort((a, b) => (a.lastVisit < b.lastVisit ? 1 : -1))
-    .slice(0, 4);
+    const week = lastNDaysLabelsAndDates(7).map(({ label, date }) => ({
+      day: label,
+      patients: new Set(
+        myAppointments.filter((a) => a.date === date).map((a) => a.patientId),
+      ).size,
+    }));
 
-  return {
-    todaysAppointmentsCount: todays.length,
-    upcomingCount: upcoming.length,
-    nextUpcomingTime: upcoming[0]?.time ?? null,
-    completedCount: completed.length,
-    waitingCount: waiting.length,
-    todaysAppointments: todays,
-    totalPatients: myPatients.length,
-    newPatientsCount: newPatients.length,
-    week,
-    recentPatients,
-  };
-});
+    const myApptPatientIds = new Set(
+      myAppointments.map((a) => a.patientId)
+    );
+    const myPatients = db.patients.filter((p) => 
+      p.primaryDoctorId === doctorId || 
+      myApptPatientIds.has(p.id) || 
+      !db.doctors.some((d) => d.id === p.primaryDoctorId)
+    );
+    const newPatients = myPatients.filter(
+      (p) => new Date(p.createdAt).getTime() > Date.now() - 1000 * 60 * 60 * 24 * 30,
+    );
+
+    const recentPatients = [...myPatients]
+      .sort((a, b) => (a.lastVisit < b.lastVisit ? 1 : -1))
+      .slice(0, 4);
+
+    const availableDates = Array.from(new Set(myAppointments.map((a) => a.date))).sort().reverse();
+
+    return {
+      todaysAppointmentsCount: todays.length,
+      selectedAppointmentsCount: selectedAppointments.length,
+      upcomingCount: upcoming.length,
+      nextUpcomingTime: upcoming[0]?.time ?? null,
+      completedCount: completed.length,
+      waitingCount: waiting.length,
+      todaysAppointments: todays,
+      selectedAppointments,
+      allAppointments: myAppointments.sort((a, b) => (a.date < b.date ? 1 : a.time.localeCompare(b.time))),
+      targetDate,
+      availableDates,
+      totalPatients: myPatients.length,
+      newPatientsCount: newPatients.length,
+      week,
+      recentPatients,
+    };
+  });
 
 export const listMyAppointmentsFn = createServerFn({ method: "GET" }).handler(async () => {
   const user = await requireDoctor();
@@ -552,7 +771,38 @@ export const lookupAppointmentStatusFn = createServerFn({ method: "POST" })
 export const listMyPatientsFn = createServerFn({ method: "GET" }).handler(async () => {
   const user = await requireDoctor();
   const db = await getDb();
-  return db.patients.filter((p) => p.primaryDoctorId === user.doctorId);
+  
+  const myApptPatientIds = new Set(
+    db.appointments.filter((a) => a.doctorId === user.doctorId).map((a) => a.patientId)
+  );
+
+  return db.patients
+    .filter((p) =>
+      p.primaryDoctorId === user.doctorId ||
+      myApptPatientIds.has(p.id) ||
+      !db.doctors.some((d) => d.id === p.primaryDoctorId)
+    )
+    .map((p) => {
+      const patientAppts = db.appointments
+        .filter((a) => a.patientId === p.id)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      const latestAppt = patientAppts[0];
+
+      const displayName = latestAppt?.patientName || p.name;
+      const displayPhone = latestAppt?.phone || p.phone;
+      const displayEmail = latestAppt?.email || p.email;
+
+      return {
+        ...p,
+        name: displayName,
+        phone: displayPhone,
+        email: displayEmail,
+        totalAppointments: patientAppts.length,
+        latestStatus: latestAppt?.status ?? "Active",
+        latestDate: latestAppt?.date ?? p.lastVisit,
+      };
+    })
+    .sort((a, b) => (a.lastVisit < b.lastVisit ? 1 : -1));
 });
 
 export const getMyScheduleFn = createServerFn({ method: "GET" }).handler(async () => {
@@ -706,7 +956,7 @@ export const updateHospitalSettingsFn = createServerFn({ method: "POST" })
 
 
 export const updateDoctorProfileFn = createServerFn({ method: "POST" })
-  .validator((data: { name?: string; email?: string; phone?: string; experienceYears?: number; department?: string; specialty?: string; qualification?: string; password?: string; newPassword?: string }) => data)
+  .validator((data: { name?: string; email?: string; phone?: string; experienceYears?: number; department?: string; specialty?: string; qualification?: string; password?: string; newPassword?: string; photoUrl?: string }) => data)
   .handler(async ({ data }) => {
     const user = await requireDoctor();
     const db = await getDb();
@@ -729,39 +979,42 @@ export const updateDoctorProfileFn = createServerFn({ method: "POST" })
     if (data.department) doctor.department = data.department;
     if (data.specialty) doctor.specialty = data.specialty;
     if (data.qualification) doctor.bio = data.qualification;
+    if (data.photoUrl !== undefined) doctor.photoUrl = data.photoUrl;
 
     await saveDb();
     return { success: true };
   });
 
 // ---------------------------------------------------------------------------
-// Blogs
+// Vlogs & Videos (aliases provided for backward compatibility)
 // ---------------------------------------------------------------------------
 
-export const listBlogsFn = createServerFn({ method: "GET" }).handler(async () => {
+export const listVlogsFn = createServerFn({ method: "GET" }).handler(async () => {
   const db = await getDb();
   return [...db.blogs].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 });
+export const listBlogsFn = listVlogsFn;
 
-export const getBlogFn = createServerFn({ method: "GET" })
+export const getVlogFn = createServerFn({ method: "GET" })
   .validator((id: string) => id)
   .handler(async ({ data: id }) => {
     const db = await getDb();
     const blog = db.blogs.find((b) => b.id === id);
-    if (!blog) throw new Error("Blog not found");
+    if (!blog) throw new Error("Vlog not found");
     return blog;
   });
+export const getBlogFn = getVlogFn;
 
-export const createBlogFn = createServerFn({ method: "POST" })
-  .validator((data: { title: string; content: string; imageUrl?: string; videoUrl?: string }) => data)
+export const createVlogFn = createServerFn({ method: "POST" })
+  .validator((data: { title: string; content?: string; imageUrl?: string; videoUrl?: string }) => data)
   .handler(async ({ data }) => {
     const user = await requireDoctor();
     const db = await getDb();
     
     const blog: BlogRecord = {
-      id: newId("blog"),
+      id: newId("vlog"),
       title: data.title.trim(),
-      content: data.content.trim(),
+      content: (data.content || "").trim(),
       imageUrl: data.imageUrl?.trim(),
       videoUrl: data.videoUrl?.trim(),
       createdAt: new Date().toISOString(),
@@ -772,26 +1025,28 @@ export const createBlogFn = createServerFn({ method: "POST" })
     await saveDb();
     return blog;
   });
+export const createBlogFn = createVlogFn;
 
-export const updateBlogFn = createServerFn({ method: "POST" })
-  .validator((data: { id: string; title: string; content: string; imageUrl?: string; videoUrl?: string }) => data)
+export const updateVlogFn = createServerFn({ method: "POST" })
+  .validator((data: { id: string; title: string; content?: string; imageUrl?: string; videoUrl?: string }) => data)
   .handler(async ({ data }) => {
     await requireDoctor();
     const db = await getDb();
     
     const blog = db.blogs.find((b) => b.id === data.id);
-    if (!blog) throw new Error("Blog not found");
+    if (!blog) throw new Error("Vlog not found");
     
     blog.title = data.title.trim();
-    blog.content = data.content.trim();
+    if (data.content !== undefined) blog.content = data.content.trim();
     if (data.imageUrl !== undefined) blog.imageUrl = data.imageUrl.trim();
     if (data.videoUrl !== undefined) blog.videoUrl = data.videoUrl.trim();
     
     await saveDb();
     return blog;
   });
+export const updateBlogFn = updateVlogFn;
 
-export const deleteBlogFn = createServerFn({ method: "POST" })
+export const deleteVlogFn = createServerFn({ method: "POST" })
   .validator((id: string) => id)
   .handler(async ({ data: id }) => {
     await requireDoctor();
@@ -801,3 +1056,4 @@ export const deleteBlogFn = createServerFn({ method: "POST" })
     await saveDb();
     return { ok: true };
   });
+export const deleteBlogFn = deleteVlogFn;

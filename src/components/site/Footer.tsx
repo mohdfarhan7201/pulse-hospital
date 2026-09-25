@@ -140,7 +140,7 @@ export function Footer() {
           <div className="grid grid-cols-2 gap-10 sm:grid-cols-3 lg:col-span-7">
             <FooterCol title="Specialties" links={[
               { label: "Interventional Cardiology", href: "/specialties/interventional-cardiology" },
-              { label: "Cardiac Surgery", href: "/specialties/cardiac-surgery" },
+              { label: "HDU / General Ward", href: "/specialties/hdu-general-ward" },
               { label: "Electrophysiology", href: "/specialties/electrophysiology" },
               { label: "Pediatric Cardiology", href: "/specialties/pediatric-cardiology" },
               { label: "Rehabilitation", href: "/specialties/rehabilitation" }

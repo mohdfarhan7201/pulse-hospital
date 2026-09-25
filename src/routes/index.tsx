@@ -26,6 +26,12 @@ import {
   Quote,
   Facebook,
   Instagram,
+  ReceiptIndianRupee,
+  QrCode,
+  Copy,
+  Check,
+  Lock,
+  ExternalLink,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { gsap } from "gsap";
@@ -538,7 +544,7 @@ function Services() {
   const services = [
     { icon: HeartPulse, t: "Interventional Cardiology", d: "Angioplasty, stenting and complex PCI performed by expert interventional teams.", href: "/specialties/interventional-cardiology" },
     { icon: Activity, t: "Diagnostic Cardiology", d: "ECG, Echo, TMT, Holter and advanced non-invasive cardiac diagnostics.", href: "/specialties/diagnostic-cardiology" },
-    { icon: Stethoscope, t: "Cardiac Surgery", d: "CABG, valve replacement and minimally invasive cardiac surgery.", href: "/specialties/cardiac-surgery" },
+    { icon: Stethoscope, t: "HDU / General Ward", d: "High Dependency Unit and fully-equipped general ward care with 24×7 dedicated nursing.", href: "/specialties/hdu-general-ward" },
     { icon: Syringe, t: "Electrophysiology", d: "Pacemaker implants, ICDs and radiofrequency ablation for arrhythmias.", href: "/specialties/electrophysiology" },
     { icon: Ambulance, t: "Emergency Services", d: "24×7 chest-pain response with door-to-balloon protocols under 60 minutes.", href: "/specialties/emergency" },
     { icon: Users, t: "Preventive Cardiology", d: "Cardiac wellness, lipid clinic and personalised heart-risk programs.", href: "/specialties/preventive-cardiology" },
@@ -1233,15 +1239,37 @@ function Field({ label, children, dark = false }: { label: string; children: Rea
    ═══════════════════════════════════════════════════ */
 function Appointment() {
   const queryClient = useQueryClient();
-  const [sent, setSent] = useState(false);
-  const [activeTab, setActiveTab] = useState<"book" | "status">("book");
+  const [appointmentType, setAppointmentType] = useState<"normal" | "emergency">("normal");
+  const [activeTab, setActiveTab] = useState<"book" | "status" | "pay">("book");
   const [selectedDept, setSelectedDept] = useState("");
   const [selectedDoctorId, setSelectedDoctorId] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [bookedDetails, setBookedDetails] = useState<{
+    name: string;
+    phone: string;
+    date: string;
+    doctorName: string;
+    fee: number;
+    apptId: string;
+  } | null>(null);
 
   const { data: publicDoctors = [] } = useQuery({
     queryKey: ["public-doctors"],
     queryFn: () => listPublicDoctorsFn(),
   });
+
+  const { data: settings } = useQuery({
+    queryKey: ["hospital-settings"],
+    queryFn: () => getHospitalSettingsFn(),
+  });
+
+  const normalFee = settings?.normalFee ?? 500;
+  const emergencyFee = settings?.emergencyFee ?? 1000;
+  const upiId = settings?.upiId || "pulseheartcentre@upi";
+  const upiName = settings?.upiName || "Pulse Heart Centre";
+
+  const currentFee = appointmentType === "emergency" ? emergencyFee : normalFee;
 
   const DEFAULT_DEPARTMENTS = ["Diagnostics"];
   const departments = Array.from(
@@ -1269,6 +1297,12 @@ function Appointment() {
     }
   };
 
+  const handleCopyUpi = () => {
+    navigator.clipboard.writeText(upiId);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -1282,12 +1316,11 @@ function Appointment() {
     const address = (formData.get("address") as string) || "";
     const state = (formData.get("state") as string) || "Uttar Pradesh";
     const country = (formData.get("country") as string) || "India";
-    const type = (formData.get("type") as string) || "normal";
 
     const doctor = publicDoctors.find((d) => d.id === selectedDoctorId);
 
     try {
-      await createPublicAppointmentFn({
+      const res = await createPublicAppointmentFn({
         data: {
           patientName: name,
           phone,
@@ -1297,6 +1330,7 @@ function Appointment() {
           department: selectedDept || "Diagnostics",
           doctorId: selectedDoctorId || doctor?.id || "",
           date,
+          time: appointmentType === "emergency" ? "Immediate Emergency" : "10:00 AM",
           address,
           state,
           country,
@@ -1322,12 +1356,32 @@ function Appointment() {
         localStorage.setItem("pulse_bookings", JSON.stringify(existing));
       }
 
-      setSent(true);
+      setBookedDetails({
+        name,
+        phone,
+        date,
+        doctorName: doctor?.name || "Doctor",
+        fee: currentFee,
+        apptId: res.appointmentId,
+      });
+
+      // Switch to Payment Gateway / QR view
+      setActiveTab("pay");
     } catch (err: any) {
       console.error("Booking error:", err);
       alert(err.message || "Failed to book appointment.");
     }
   };
+
+  const upiUrl = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(
+    upiName
+  )}&am=${currentFee}&cu=INR&tn=${encodeURIComponent(
+    `Pulse Heart Centre Consultation Fee - ${bookedDetails?.name || "Appointment"}`
+  )}`;
+
+  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(
+    upiUrl
+  )}`;
 
   return (
     <section id="appointment" className="relative overflow-hidden py-12 lg:py-10">
@@ -1349,30 +1403,52 @@ function Appointment() {
         </Reveal>
 
         <Reveal variant="fade-right">
-          <div className="mb-6 flex overflow-hidden rounded-full border border-border bg-muted/50 p-1">
-            <button
-              onClick={() => setActiveTab("book")}
-              className={`flex-1 rounded-full py-2.5 text-sm font-semibold transition-all ${
-                activeTab === "book" ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Book Appointment
-            </button>
-            <button
-              onClick={() => setActiveTab("status")}
-              className={`flex-1 rounded-full py-2.5 text-sm font-semibold transition-all ${
-                activeTab === "status" ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Check Status
-            </button>
-          </div>
+          {activeTab !== "pay" ? (
+            <div className="mb-6 flex overflow-hidden rounded-full border border-border bg-muted/50 p-1">
+              <button
+                onClick={() => setActiveTab("book")}
+                className={`flex-1 rounded-full py-2.5 text-sm font-semibold transition-all ${
+                  activeTab === "book" ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Book Appointment
+              </button>
+              <button
+                onClick={() => setActiveTab("status")}
+                className={`flex-1 rounded-full py-2.5 text-sm font-semibold transition-all ${
+                  activeTab === "status" ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Check Status
+              </button>
+            </div>
+          ) : (
+            <div className="mb-6 flex overflow-hidden rounded-full border border-border bg-muted/50 p-1">
+              <button
+                onClick={() => setActiveTab("book")}
+                className="flex-1 rounded-full py-2.5 text-xs sm:text-sm font-semibold transition-all text-muted-foreground hover:text-foreground"
+              >
+                ← Book Another
+              </button>
+              <button
+                className="flex-1 rounded-full py-2.5 text-xs sm:text-sm font-semibold transition-all bg-white text-primary shadow-sm"
+              >
+                Payment & QR
+              </button>
+              <button
+                onClick={() => setActiveTab("status")}
+                className="flex-1 rounded-full py-2.5 text-xs sm:text-sm font-semibold transition-all text-muted-foreground hover:text-foreground"
+              >
+                Check Status
+              </button>
+            </div>
+          )}
 
           {activeTab === "book" ? (
-            <form onSubmit={handleSubmit} className="rounded-3xl border border-border bg-card p-8 shadow-luxe">
+            <form onSubmit={handleSubmit} className="rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-luxe">
               <div className="grid gap-4 sm:grid-cols-2">
-                <Input label="Full name" name="name" required />
-                <Input label="Phone" name="phone" type="tel" required />
+                <Input label="Full name" name="name" required placeholder="John Doe" />
+                <Input label="Phone" name="phone" type="tel" required placeholder="+91 XXXXX XXXXX" />
 
                 <div>
                   <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-muted-foreground">Age (Years)</label>
@@ -1401,7 +1477,7 @@ function Appointment() {
                   </select>
                 </div>
 
-                <Input label="Email" name="email" type="email" className="sm:col-span-2" />
+                <Input label="Email" name="email" type="email" placeholder="john@example.com" className="sm:col-span-2" />
 
                 <div className="sm:col-span-1">
                   <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-muted-foreground">Department</label>
@@ -1442,11 +1518,12 @@ function Appointment() {
                   <select
                     name="type"
                     required
-                    defaultValue="normal"
+                    value={appointmentType}
+                    onChange={(e) => setAppointmentType(e.target.value as "normal" | "emergency")}
                     className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none focus:border-ring"
                   >
-                    <option value="normal">Normal</option>
-                    <option value="emergency">Emergency</option>
+                    <option value="normal">Normal (₹{normalFee})</option>
+                    <option value="emergency">Emergency (₹{emergencyFee})</option>
                   </select>
                 </div>
                 
@@ -1498,7 +1575,7 @@ function Appointment() {
                   </select>
                 </div>
                 
-                <div className="col-span-1">
+                <div className="col-span-1 sm:col-span-2">
                   <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-muted-foreground">Country</label>
                   <select
                     name="country"
@@ -1517,20 +1594,121 @@ function Appointment() {
                   <label className="mb-2 block text-xs uppercase tracking-[0.22em] text-muted-foreground">Address</label>
                   <textarea name="address" rows={2} required placeholder="Full Address..." className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none focus:border-ring" />
                 </div>
-
               </div>
+
+              {/* Fee Summary */}
+              <div className="mt-4 rounded-2xl bg-muted/40 p-3 px-4 border border-border flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="bg-background rounded-full p-2 text-primary shadow-sm">
+                    <ReceiptIndianRupee className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold">Consultation Fee</div>
+                    <div className="text-[11px] text-muted-foreground leading-tight">
+                      {appointmentType === "emergency"
+                        ? "Priority Emergency Assessment"
+                        : "Standard OPD Assessment"}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-xl font-display font-bold text-primary">₹{currentFee}</div>
+              </div>
+
               <button
                 type="submit"
-                disabled={sent}
-                className="btn-lux mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[oklch(0.42_0.18_265)] to-[oklch(0.62_0.15_210)] px-6 py-3.5 text-sm font-semibold text-white shadow-glow"
+                className="btn-lux mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[oklch(0.42_0.18_265)] to-[oklch(0.62_0.15_210)] px-6 py-3.5 text-sm font-semibold text-white shadow-glow transition-all hover:scale-[1.02] active:scale-[0.98]"
               >
-                {sent ? "Request received ✓" : "Request appointment"}
-                {!sent && <ArrowRight className="h-4 w-4" />}
+                Proceed to Pay ₹{currentFee}
+                <ArrowRight className="h-4 w-4" />
               </button>
             </form>
-          ) : (
-            <div className="rounded-3xl border border-border bg-card p-8 shadow-luxe min-h-[450px]">
+          ) : activeTab === "status" ? (
+            <div className="rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-luxe min-h-[450px]">
               <AppointmentStatus />
+            </div>
+          ) : (
+            <div className="rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-luxe flex flex-col items-center text-center space-y-4">
+              <div className="rounded-2xl border border-border bg-muted/30 p-4 w-full text-left space-y-1">
+                <div className="text-xs text-muted-foreground font-medium">Appointment Booking Request Submitted</div>
+                <div className="text-base font-bold text-foreground">{bookedDetails?.name}</div>
+                <div className="text-xs text-muted-foreground">
+                  Doctor: <span className="font-semibold text-foreground">{bookedDetails?.doctorName}</span> · Date: {bookedDetails?.date}
+                </div>
+              </div>
+
+              {/* Exact Locked Fee Badge */}
+              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-5 py-2 text-emerald-600 dark:text-emerald-400">
+                <Lock className="h-4 w-4" />
+                <span className="text-xs font-semibold">Locked Preset Fee:</span>
+                <span className="text-xl font-bold font-display">₹{currentFee}</span>
+              </div>
+
+              {/* UPI QR Code */}
+              <div className="p-4 bg-white rounded-2xl border border-border shadow-md inline-block">
+                <img
+                  src={qrImageUrl}
+                  alt="UPI Payment QR Code"
+                  className="w-48 h-48 object-contain"
+                />
+              </div>
+
+              <div className="text-xs text-muted-foreground max-w-sm">
+                Scan QR code with GPay, PhonePe, Paytm, or BHIM. Amount is automatically preset to ₹{currentFee}.
+              </div>
+
+              {/* UPI ID Copy Box */}
+              <div className="flex items-center justify-between rounded-xl border bg-background px-4 py-2.5 w-full text-xs">
+                <div className="flex items-center gap-2">
+                  <QrCode className="h-4 w-4 text-primary" />
+                  <span className="font-mono font-semibold">{upiId}</span>
+                  <span className="text-[10px] text-muted-foreground">({upiName})</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCopyUpi}
+                  className="flex items-center gap-1 text-primary hover:underline font-semibold"
+                >
+                  {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                  {copied ? "Copied" : "Copy"}
+                </button>
+              </div>
+
+              {/* Direct UPI App Launch Link */}
+              <a
+                href={upiUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/20 w-full hover:scale-[1.02] active:scale-[0.98] transition-transform"
+              >
+                <ExternalLink className="h-4 w-4" /> Open UPI App (GPay / PhonePe / Paytm)
+              </a>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBookingSuccess(true);
+                    toast.success("Payment marked as completed! We will verify your appointment.");
+                    setTimeout(() => {
+                      setActiveTab("status");
+                      setBookingSuccess(false);
+                    }, 1200);
+                  }}
+                  className="w-full rounded-full bg-primary/10 hover:bg-primary/20 text-primary py-2.5 text-xs font-semibold border border-primary/20 transition-colors"
+                >
+                  {bookingSuccess ? "Payment Marked Complete ✓" : "I Have Completed Payment"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab("book");
+                  }}
+                  className="w-full rounded-full border border-border py-2.5 text-xs font-semibold text-muted-foreground hover:bg-muted transition-colors"
+                >
+                  Book Another Appointment
+                </button>
+              </div>
             </div>
           )}
         </Reveal>

@@ -38,17 +38,30 @@ const specialtiesData: Record<string, any> = {
     image: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=2000&auto=format&fit=crop",
     mainIcon: Syringe
   },
-  "cardiac-surgery": {
-    title: "Cardiac Surgery",
-    description: "World-class surgical care for the most complex heart conditions. Our surgical team specializes in both traditional open-heart surgeries and advanced minimally invasive procedures.",
+  "hdu-general-ward": {
+    title: "HDU / General Ward",
+    description: "Specialized High Dependency Unit (HDU) monitoring and comfortable, fully-equipped General Ward facilities with round-the-clock medical supervision and compassionate nursing care.",
     treatments: [
-      { name: "Coronary Bypass (CABG)", desc: "Creating new routes around narrowed and blocked coronary arteries." },
-      { name: "Valve Repair & Replacement", desc: "Surgical intervention for diseased or damaged heart valves." },
-      { name: "Aortic Surgery", desc: "Complex repairs of aortic aneurysms and dissections." },
-      { name: "Heart Failure Surgery", desc: "Implantation of ventricular assist devices (VADs) and other surgical options." }
+      { name: "Continuous Multi-Para Monitoring", desc: "Constant real-time tracking of vitals, heart rate, ECG, and oxygen saturation." },
+      { name: "Step-Down Cardiac Care", desc: "Transitional intensive monitoring for patients stabilized post-ICU or post-procedure." },
+      { name: "24×7 Critical Nursing Support", desc: "Experienced nursing staff providing focused post-operative and medical recovery support." },
+      { name: "Inpatient General Medical Care", desc: "Comfortable recovery rooms with dedicated doctor rounds and daily clinical reviews." }
     ],
-    expertise: "We feature state-of-the-art surgical suites and a dedicated cardiac intensive care unit, ensuring you receive the highest level of care before, during, and after your procedure.",
-    image: "https://images.unsplash.com/photo-1551076805-e1869033e561?q=80&w=2000&auto=format&fit=crop",
+    expertise: "Our HDU and General Ward units bridge critical care and routine recovery, providing continuous vital monitoring, immediate emergency response, and personalized patient rehabilitation.",
+    image: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=2000&auto=format&fit=crop",
+    mainIcon: Stethoscope
+  },
+  "cardiac-surgery": {
+    title: "HDU / General Ward",
+    description: "Specialized High Dependency Unit (HDU) monitoring and comfortable, fully-equipped General Ward facilities with round-the-clock medical supervision and compassionate nursing care.",
+    treatments: [
+      { name: "Continuous Multi-Para Monitoring", desc: "Constant real-time tracking of vitals, heart rate, ECG, and oxygen saturation." },
+      { name: "Step-Down Cardiac Care", desc: "Transitional intensive monitoring for patients stabilized post-ICU or post-procedure." },
+      { name: "24×7 Critical Nursing Support", desc: "Experienced nursing staff providing focused post-operative and medical recovery support." },
+      { name: "Inpatient General Medical Care", desc: "Comfortable recovery rooms with dedicated doctor rounds and daily clinical reviews." }
+    ],
+    expertise: "Our HDU and General Ward units bridge critical care and routine recovery, providing continuous vital monitoring, immediate emergency response, and personalized patient rehabilitation.",
+    image: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=2000&auto=format&fit=crop",
     mainIcon: Stethoscope
   },
   "electrophysiology": {

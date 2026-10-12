@@ -174,41 +174,67 @@ function DoctorBlogsPage() {
     reader.readAsDataURL(file);
   };
 
-  // Upload video via streaming XMLHttpRequest
-  const uploadVideoToServer = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
+  // Upload video via chunked upload (prevents 413 Payload Too Large on Vercel)
+  const uploadVideoToServer = async (file: File): Promise<string> => {
+    // 1.5 MB chunk size to ensure each chunk stays well below Vercel's 4.5 MB limit
+    const CHUNK_SIZE = 1.5 * 1024 * 1024;
+    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+    const uploadId = `upload-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
+    setUploadProgress(0);
+
+    for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+      const start = chunkIndex * CHUNK_SIZE;
+      const end = Math.min(start + CHUNK_SIZE, file.size);
+      const chunkBlob = file.slice(start, end);
+
       const formData = new FormData();
-      formData.append("video", file);
+      formData.append("uploadId", uploadId);
+      formData.append("chunkIndex", String(chunkIndex));
+      formData.append("totalChunks", String(totalChunks));
+      formData.append("fileName", file.name);
+      formData.append("chunk", chunkBlob, file.name);
 
-      xhr.upload.onprogress = (event) => {
-        if (event.lengthComputable) {
-          const percent = Math.round((event.loaded / event.total) * 100);
-          setUploadProgress(percent);
-        }
-      };
+      const res = await new Promise<{ done?: boolean; url?: string; error?: string }>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
 
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          try {
-            const res = JSON.parse(xhr.responseText);
-            if (res.url) {
-              resolve(res.url);
-            } else {
-              reject(new Error(res.error || "Upload failed"));
-            }
-          } catch {
-            reject(new Error("Invalid upload response"));
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const chunkFraction = event.loaded / event.total;
+            const currentPercent = Math.round(((chunkIndex + chunkFraction) / totalChunks) * 100);
+            setUploadProgress(Math.min(currentPercent, 99));
           }
-        } else {
-          reject(new Error(`Server error: ${xhr.statusText || xhr.status}`));
-        }
-      };
+        };
 
-      xhr.onerror = () => reject(new Error("Network error during video upload"));
-      xhr.open("POST", "/api/upload-video");
-      xhr.send(formData);
-    });
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const parsed = JSON.parse(xhr.responseText);
+              resolve(parsed);
+            } catch {
+              reject(new Error("Invalid chunk upload response"));
+            }
+          } else {
+            reject(new Error(`Server error (${xhr.status}): ${xhr.statusText || "Chunk upload failed"}`));
+          }
+        };
+
+        xhr.onerror = () => reject(new Error("Network error during chunk upload"));
+        xhr.open("POST", "/api/upload-video-chunk");
+        xhr.send(formData);
+      });
+
+      if (res.error) {
+        throw new Error(res.error);
+      }
+
+      if (res.done && res.url) {
+        setUploadProgress(100);
+        return res.url;
+      }
+    }
+
+    throw new Error("Upload did not complete successfully");
   };
 
   const createMutation = useMutation({
@@ -482,6 +508,10 @@ function DoctorBlogsPage() {
                         </Button>
                       )}
                     </div>
+
+                    <p className="text-[11px] text-muted-foreground mt-1 leading-normal">
+                      💡 <strong>Tip:</strong> Automatic chunked cloud streaming is active. Your video will upload safely in chunks without size limits or 413 errors.
+                    </p>
 
                     {videoPreviewUrl && (
                       <div className="mt-3 aspect-video w-full rounded-xl overflow-hidden border bg-black shadow-md">

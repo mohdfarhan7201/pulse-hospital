@@ -101,6 +101,7 @@ function BlogsPage() {
   const isModalDirectVideo =
     activeModalBlog?.videoUrl &&
     (activeModalBlog.videoUrl.startsWith("/uploads/") ||
+      activeModalBlog.videoUrl.startsWith("/api/video/") ||
       activeModalBlog.videoUrl.match(/\.(mp4|webm|mov)$/i));
 
   return (
@@ -274,7 +275,7 @@ function BlogsPage() {
                       alt={featuredBlog.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-[0.9] group-hover:brightness-100"
                     />
-                  ) : featuredBlog.videoUrl?.startsWith("/uploads/") ? (
+                  ) : featuredBlog.videoUrl?.startsWith("/uploads/") || featuredBlog.videoUrl?.startsWith("/api/video/") ? (
                     <video
                       src={featuredBlog.videoUrl}
                       muted
@@ -404,7 +405,7 @@ function BlogsPage() {
                             alt={blog.title}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 brightness-95 group-hover:brightness-100"
                           />
-                        ) : blog.videoUrl?.startsWith("/uploads/") ? (
+                        ) : blog.videoUrl?.startsWith("/uploads/") || blog.videoUrl?.startsWith("/api/video/") ? (
                           <video
                             src={blog.videoUrl}
                             muted

@@ -102,7 +102,9 @@ function SingleBlogPage() {
 
   const isDirectVideo =
     blog.videoUrl &&
-    (blog.videoUrl.startsWith("/uploads/") || blog.videoUrl.match(/\.(mp4|webm|mov)$/i));
+    (blog.videoUrl.startsWith("/uploads/") ||
+      blog.videoUrl.startsWith("/api/video/") ||
+      blog.videoUrl.match(/\.(mp4|webm|mov)$/i));
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f8fafc] text-slate-900 font-sans selection:bg-primary selection:text-white">

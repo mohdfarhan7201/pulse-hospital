@@ -462,7 +462,7 @@ function About() {
             A cardiac sanctuary built on <span className="grad-text">precision & compassion</span>.
           </h2>
           <p className="mt-6 max-w-xl text-lg text-muted-foreground">
-            Led by Dr. Prakash Chand Shahi, a highly acclaimed Interventional Cardiologist (MBBS, MD, DM), Pulse Heart Centre is a purpose-built cardiac facility in Gorakhpur. We pair over 22 years of elite medical expertise with a fully integrated cath lab, cardiac ICU and modular operation theatre.
+            Led by Dr. Prakash Chand Shahi, a highly acclaimed Interventional Cardiologist (MBBS, MD, DM), Pulse Heart Centre is a purpose-built cardiac facility in Gorakhpur. We pair over 24 years of elite medical expertise with a fully integrated cath lab, cardiac ICU and modular operation theatre.
           </p>
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
             {[
@@ -683,7 +683,7 @@ function Doctors() {
     n: "Dr. Prakash Chand Shahi",
     r: "Director & Senior Interventional Cardiologist",
     degrees: "MBBS (GSVM) · MD Medicine (KGMU) · DM Cardiology (PGIMER, Chandigarh)",
-    exp: "22+ Years",
+    exp: "24+ Years",
     bio: "Pioneering advanced cardiac care in Eastern Uttar Pradesh, Dr. Prakash Chand Shahi brings over two decades of distinguished clinical and interventional mastery. Specializing in complex coronary angioplasties via radial approach, permanent pacemaker implantations, and emergency cardiac interventions.",
   };
 
@@ -868,7 +868,9 @@ function Doctors() {
               {/* Milestones / Stats Row */}
               <div className="grid grid-cols-3 gap-3 border-y border-border/60 py-4">
                 <div>
-                  <div className="font-display text-2xl sm:text-3xl font-bold text-foreground">22+</div>
+                  <div className="font-display text-2xl sm:text-3xl font-bold text-foreground">
+                    {primaryDbDoctor?.experienceYears ? `${primaryDbDoctor.experienceYears}+` : "24+"}
+                  </div>
                   <div className="text-[11px] sm:text-xs text-muted-foreground uppercase tracking-wider mt-0.5">Years Experience</div>
                 </div>
                 <div>

@@ -25,7 +25,7 @@ async function reseed() {
     department: "Cardiology",
     email: "doctor@pulseheart.com",
     phone: "+91 98765 10001",
-    experienceYears: 15,
+    experienceYears: 24,
     status: "Active",
     joinedOn: "2010-01-01",
   };

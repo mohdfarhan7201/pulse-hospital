@@ -139,7 +139,7 @@ function BlogsPage() {
             <p className="text-sm sm:text-base md:text-lg text-slate-600 leading-relaxed max-w-2xl font-normal">
               Educational medical articles, heart care guidance, and clinical advice published
               directly by <span className="text-slate-900 font-semibold">Dr. Prakash Chand Shahi</span>{" "}
-              (Director &amp; Chief Cardiologist · Over 22+ Years of Experience).
+              (Director &amp; Chief Cardiologist · Over 24+ Years of Experience).
             </p>
           </div>
 

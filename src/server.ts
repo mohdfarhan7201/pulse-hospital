@@ -65,6 +65,20 @@ export default {
 
           const bytes = await file.arrayBuffer();
           const buffer = Buffer.from(bytes);
+
+          // Upload to Cloudinary (cloud CDN)
+          try {
+            const { uploadVideoBuffer } = await import("./lib/server/cloudinary");
+            const cloudinaryUrl = await uploadVideoBuffer(buffer, file.name);
+            return new Response(JSON.stringify({ url: cloudinaryUrl }), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          } catch (cloudErr) {
+            console.warn("Cloudinary upload failed, falling back to local storage:", cloudErr);
+          }
+
+          // Fallback to local storage if Cloudinary is unavailable
           const originalExt = path.extname(file.name || "") || ".mp4";
           const filename = `vlog-${Date.now()}-${Math.random().toString(36).slice(2, 8)}${originalExt}`;
           const uploadDir = path.resolve(process.cwd(), "public/uploads/videos");

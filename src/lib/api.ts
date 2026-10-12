@@ -979,7 +979,18 @@ export const updateDoctorProfileFn = createServerFn({ method: "POST" })
     if (data.department) doctor.department = data.department;
     if (data.specialty) doctor.specialty = data.specialty;
     if (data.qualification) doctor.bio = data.qualification;
-    if (data.photoUrl !== undefined) doctor.photoUrl = data.photoUrl;
+    if (data.photoUrl !== undefined) {
+      let photo = data.photoUrl;
+      if (photo && photo.startsWith("data:image/")) {
+        try {
+          const { uploadImage } = await import("./server/cloudinary");
+          photo = await uploadImage(photo);
+        } catch (e) {
+          console.warn("Cloudinary photo upload error:", e);
+        }
+      }
+      doctor.photoUrl = photo;
+    }
 
     await saveDb();
     return { success: true };
@@ -1011,11 +1022,21 @@ export const createVlogFn = createServerFn({ method: "POST" })
     const user = await requireDoctor();
     const db = await getDb();
     
+    let imageUrl = data.imageUrl?.trim();
+    if (imageUrl && imageUrl.startsWith("data:image/")) {
+      try {
+        const { uploadImage } = await import("./server/cloudinary");
+        imageUrl = await uploadImage(imageUrl);
+      } catch (e) {
+        console.warn("Cloudinary image upload error, using fallback:", e);
+      }
+    }
+
     const blog: BlogRecord = {
       id: newId("vlog"),
       title: data.title.trim(),
       content: (data.content || "").trim(),
-      imageUrl: data.imageUrl?.trim(),
+      imageUrl,
       videoUrl: data.videoUrl?.trim(),
       createdAt: new Date().toISOString(),
       authorId: user.doctorId!,
@@ -1038,7 +1059,18 @@ export const updateVlogFn = createServerFn({ method: "POST" })
     
     blog.title = data.title.trim();
     if (data.content !== undefined) blog.content = data.content.trim();
-    if (data.imageUrl !== undefined) blog.imageUrl = data.imageUrl.trim();
+    if (data.imageUrl !== undefined) {
+      let img = data.imageUrl.trim();
+      if (img && img.startsWith("data:image/")) {
+        try {
+          const { uploadImage } = await import("./server/cloudinary");
+          img = await uploadImage(img);
+        } catch (e) {
+          console.warn("Cloudinary image update error:", e);
+        }
+      }
+      blog.imageUrl = img;
+    }
     if (data.videoUrl !== undefined) blog.videoUrl = data.videoUrl.trim();
     
     await saveDb();

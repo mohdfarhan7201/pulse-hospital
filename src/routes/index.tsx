@@ -38,7 +38,6 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
-import { Loader } from "@/components/site/Loader";
 import { CursorGlow } from "@/components/site/CursorGlow";
 import { EcgLine } from "@/components/site/EcgLine";
 import { Reveal } from "@/components/site/Reveal";
@@ -138,7 +137,6 @@ function Home() {
 
   return (
     <div id="top" className="relative min-h-screen overflow-x-hidden bg-background text-foreground">
-      <Loader />
       <CursorGlow />
       <Navbar />
       <main>
@@ -230,7 +228,7 @@ function Hero() {
           duration: 1.2,
           stagger: 0.15,
           ease: "power3.out",
-          delay: 3.6,  /* after preloader */
+          delay: 0.2,
         });
       }
 
@@ -244,7 +242,7 @@ function Hero() {
           duration: 1,
           stagger: 0.12,
           ease: "power3.out",
-          delay: 4.2,
+          delay: 0.5,
         });
       }
     });

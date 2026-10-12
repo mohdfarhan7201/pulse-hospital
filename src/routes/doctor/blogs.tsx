@@ -215,7 +215,12 @@ function DoctorBlogsPage() {
               reject(new Error("Invalid chunk upload response"));
             }
           } else {
-            reject(new Error(`Server error (${xhr.status}): ${xhr.statusText || "Chunk upload failed"}`));
+            let errorMsg = `Server error (${xhr.status}): ${xhr.statusText || "Chunk upload failed"}`;
+            try {
+              const errBody = JSON.parse(xhr.responseText);
+              if (errBody?.error) errorMsg = errBody.error;
+            } catch {}
+            reject(new Error(errorMsg));
           }
         };
 

@@ -1069,9 +1069,9 @@ export const updateVlogFn = createServerFn({ method: "POST" })
           console.warn("Cloudinary image update error:", e);
         }
       }
-      blog.imageUrl = img;
+      blog.imageUrl = img || undefined;
     }
-    if (data.videoUrl !== undefined) blog.videoUrl = data.videoUrl.trim();
+    if (data.videoUrl !== undefined) blog.videoUrl = data.videoUrl.trim() || undefined;
     
     await saveDb();
     return blog;

@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   CheckCircle2,
   Award,
+  Pencil,
 } from "lucide-react";
 
 import { getBlogFn, getHospitalSettingsFn } from "@/lib/api";
@@ -164,6 +165,16 @@ function SingleBlogPage() {
               </div>
 
               <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className="rounded-full gap-1.5 text-xs font-semibold border-slate-200 hover:bg-slate-50 text-slate-700"
+                >
+                  <Link to="/doctor/blogs" search={{ edit: blog.id }}>
+                    <Pencil className="h-3.5 w-3.5 text-primary" /> Edit Article
+                  </Link>
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"

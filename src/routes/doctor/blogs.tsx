@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import {
   Image as ImageIcon,
@@ -17,16 +17,25 @@ import {
   BookOpen,
   Link2,
   CheckCircle2,
+  Pencil,
+  Check,
 } from "lucide-react";
 
-import { listBlogsFn, createBlogFn, deleteBlogFn, type BlogRecord } from "@/lib/api";
+import { listBlogsFn, createBlogFn, updateBlogFn, deleteBlogFn, type BlogRecord } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
+type DoctorBlogsSearch = {
+  edit?: string;
+};
+
 export const Route = createFileRoute("/doctor/blogs")({
+  validateSearch: (search: Record<string, unknown>): DoctorBlogsSearch => ({
+    edit: typeof search.edit === "string" ? search.edit : undefined,
+  }),
   component: DoctorBlogsPage,
 });
 
@@ -76,6 +85,8 @@ const captureThumbnailFromVideo = (videoFile: File): Promise<string> => {
 
 function DoctorBlogsPage() {
   const queryClient = useQueryClient();
+  const search = Route.useSearch();
+  const formRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -83,6 +94,9 @@ function DoctorBlogsPage() {
     queryKey: ["blogs"],
     queryFn: () => listBlogsFn(),
   });
+
+  // Edit Mode state
+  const [editingBlogId, setEditingBlogId] = useState<string | null>(null);
 
   // Form State
   const [title, setTitle] = useState("");
@@ -242,21 +256,62 @@ function DoctorBlogsPage() {
     throw new Error("Upload did not complete successfully");
   };
 
+  const resetForm = () => {
+    setEditingBlogId(null);
+    setTitle("");
+    setContent("");
+    setImageUrl("");
+    setVideoUrl("");
+    setVideoFile(null);
+    if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
+    setVideoPreviewUrl(null);
+    setUploadProgress(0);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (videoFileInputRef.current) videoFileInputRef.current.value = "";
+  };
+
+  const startEdit = (item: BlogRecord) => {
+    setEditingBlogId(item.id);
+    setTitle(item.title);
+    setContent(item.content || "");
+    setImageUrl(item.imageUrl || "");
+    setVideoUrl(item.videoUrl || "");
+    setVideoFile(null);
+    if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
+    setVideoPreviewUrl(null);
+
+    if (item.videoUrl) {
+      if (
+        item.videoUrl.startsWith("/uploads/") ||
+        item.videoUrl.startsWith("/api/video/") ||
+        item.videoUrl.match(/\.(mp4|webm|mov)$/i)
+      ) {
+        setActiveMediaTab("upload-video");
+      } else {
+        setActiveMediaTab("link-video");
+      }
+    } else {
+      setActiveMediaTab("image");
+    }
+
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  useEffect(() => {
+    if (search.edit && blogs && blogs.length > 0) {
+      const found = blogs.find((b) => b.id === search.edit);
+      if (found) {
+        startEdit(found);
+      }
+    }
+  }, [search.edit, blogs]);
+
   const createMutation = useMutation({
     mutationFn: (newPost: { title: string; content?: string; imageUrl?: string; videoUrl?: string }) =>
       createBlogFn({ data: newPost }),
     onSuccess: () => {
       toast.success("Blog published successfully!");
-      setTitle("");
-      setContent("");
-      setImageUrl("");
-      setVideoUrl("");
-      setVideoFile(null);
-      if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
-      setVideoPreviewUrl(null);
-      setUploadProgress(0);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      if (videoFileInputRef.current) videoFileInputRef.current.value = "";
+      resetForm();
       queryClient.invalidateQueries({ queryKey: ["blogs"] });
       queryClient.invalidateQueries({ queryKey: ["vlogs"] });
     },
@@ -265,10 +320,27 @@ function DoctorBlogsPage() {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: (updatedPost: { id: string; title: string; content?: string; imageUrl?: string; videoUrl?: string }) =>
+      updateBlogFn({ data: updatedPost }),
+    onSuccess: () => {
+      toast.success("Blog updated successfully!");
+      resetForm();
+      queryClient.invalidateQueries({ queryKey: ["blogs"] });
+      queryClient.invalidateQueries({ queryKey: ["vlogs"] });
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Failed to update blog.");
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteBlogFn({ data: id }),
-    onSuccess: () => {
+    onSuccess: (_data, deletedId) => {
       toast.success("Blog deleted.");
+      if (editingBlogId === deletedId) {
+        resetForm();
+      }
       queryClient.invalidateQueries({ queryKey: ["blogs"] });
       queryClient.invalidateQueries({ queryKey: ["vlogs"] });
     },
@@ -288,7 +360,7 @@ function DoctorBlogsPage() {
 
     // If uploading a local video file
     if (activeMediaTab === "upload-video") {
-      if (!videoFile && !finalVideoUrl) {
+      if (!videoFile && !finalVideoUrl && !editingBlogId) {
         toast.error("Please select a video file to upload.");
         return;
       }
@@ -307,12 +379,22 @@ function DoctorBlogsPage() {
       }
     }
 
-    createMutation.mutate({
-      title: title.trim(),
-      content: content.trim(),
-      imageUrl: imageUrl.trim() || undefined,
-      videoUrl: finalVideoUrl || undefined,
-    });
+    if (editingBlogId) {
+      updateMutation.mutate({
+        id: editingBlogId,
+        title: title.trim(),
+        content: content.trim(),
+        imageUrl: imageUrl.trim() || undefined,
+        videoUrl: finalVideoUrl || undefined,
+      });
+    } else {
+      createMutation.mutate({
+        title: title.trim(),
+        content: content.trim(),
+        imageUrl: imageUrl.trim() || undefined,
+        videoUrl: finalVideoUrl || undefined,
+      });
+    }
   };
 
   const videoPreviewEmbed = getEmbedUrl(videoUrl);
@@ -339,13 +421,47 @@ function DoctorBlogsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column: Create New Blog Form */}
-        <div className="lg:col-span-6 space-y-6">
-          <Card className="shadow-sm border-border/80">
-            <CardHeader className="border-b bg-muted/30 pb-4">
-              <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <Plus className="h-4 w-4 text-primary" /> Create New Health Blog Post
-              </CardTitle>
+        {/* Left Column: Create / Edit Blog Form */}
+        <div ref={formRef} className="lg:col-span-6 space-y-6">
+          <Card
+            className={`shadow-sm transition-all duration-300 ${
+              editingBlogId ? "border-primary ring-2 ring-primary/20 shadow-md" : "border-border/80"
+            }`}
+          >
+            <CardHeader
+              className={`border-b pb-4 transition-colors ${
+                editingBlogId ? "bg-primary/5" : "bg-muted/30"
+              }`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  {editingBlogId ? (
+                    <>
+                      <Pencil className="h-4 w-4 text-primary" /> Edit Health Blog Post
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="h-4 w-4 text-primary" /> Create New Health Blog Post
+                    </>
+                  )}
+                </CardTitle>
+                {editingBlogId && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={resetForm}
+                    className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground cursor-pointer"
+                  >
+                    <X className="h-3.5 w-3.5" /> Cancel Edit
+                  </Button>
+                )}
+              </div>
+              {editingBlogId && (
+                <p className="text-xs text-primary font-medium mt-1">
+                  ✏️ Currently editing this article. Make your changes and click &quot;Update Blog Post&quot; below.
+                </p>
+              )}
             </CardHeader>
             <CardContent className="pt-6">
               <form onSubmit={handleSubmit} className="space-y-5">
@@ -546,9 +662,26 @@ function DoctorBlogsPage() {
                       💡 <strong>Tip:</strong> Automatic chunked cloud streaming is active. Your video will upload safely in chunks without size limits or 413 errors.
                     </p>
 
-                    {videoPreviewUrl && (
+                    {!videoFile && videoUrl && (videoUrl.startsWith("/uploads/") || videoUrl.startsWith("/api/video/")) && (
+                      <div className="flex items-center justify-between text-xs bg-muted/60 p-2.5 rounded-lg border">
+                        <span className="truncate max-w-[220px] text-muted-foreground font-medium">
+                          📹 Attached video: {videoUrl.split("/").pop()}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setVideoUrl("")}
+                          className="h-6 text-xs text-destructive hover:bg-destructive/10 px-2 cursor-pointer"
+                        >
+                          <X className="h-3 w-3 mr-1" /> Remove Video
+                        </Button>
+                      </div>
+                    )}
+
+                    {(videoPreviewUrl || (!videoFile && videoUrl && (videoUrl.startsWith("/uploads/") || videoUrl.startsWith("/api/video/")))) && (
                       <div className="mt-3 aspect-video w-full rounded-xl overflow-hidden border bg-black shadow-md">
-                        <video src={videoPreviewUrl} controls className="w-full h-full object-contain" />
+                        <video src={videoPreviewUrl || videoUrl} controls className="w-full h-full object-contain" />
                       </div>
                     )}
 
@@ -584,24 +717,41 @@ function DoctorBlogsPage() {
                   />
                 </div>
 
-                {/* Submit Button */}
-                <Button
-                  type="submit"
-                  disabled={createMutation.isPending || isUploadingVideo}
-                  className="w-full gap-2 h-11 text-sm font-semibold shadow-md cursor-pointer"
-                >
-                  {createMutation.isPending || isUploadingVideo ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Publishing...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send className="h-4 w-4" />
-                      <span>Publish Blog Post</span>
-                    </>
+                {/* Submit / Update Button */}
+                <div className="flex gap-2">
+                  <Button
+                    type="submit"
+                    disabled={createMutation.isPending || updateMutation.isPending || isUploadingVideo}
+                    className="flex-1 gap-2 h-11 text-sm font-semibold shadow-md cursor-pointer"
+                  >
+                    {createMutation.isPending || updateMutation.isPending || isUploadingVideo ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>{editingBlogId ? "Updating Blog..." : "Publishing..."}</span>
+                      </>
+                    ) : editingBlogId ? (
+                      <>
+                        <Check className="h-4 w-4" />
+                        <span>Update Blog Post</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4" />
+                        <span>Publish Blog Post</span>
+                      </>
+                    )}
+                  </Button>
+                  {editingBlogId && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={resetForm}
+                      className="h-11 px-4 text-sm cursor-pointer"
+                    >
+                      Cancel
+                    </Button>
                   )}
-                </Button>
+                </div>
               </form>
             </CardContent>
           </Card>
@@ -643,7 +793,14 @@ function DoctorBlogsPage() {
                 : item.imageUrl;
 
               return (
-                <Card key={item.id} className="overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                <Card
+                  key={item.id}
+                  className={`overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 ${
+                    editingBlogId === item.id
+                      ? "ring-2 ring-primary border-primary bg-primary/[0.02]"
+                      : ""
+                  }`}
+                >
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center">
                     {/* Thumbnail preview */}
                     {thumbUrl ? (
@@ -718,19 +875,34 @@ function DoctorBlogsPage() {
                           View Live <ExternalLink className="h-3 w-3" />
                         </Link>
 
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            if (window.confirm("Are you sure you want to delete this blog?")) {
-                              deleteMutation.mutate(item.id);
-                            }
-                          }}
-                          disabled={deleteMutation.isPending}
-                          className="h-7 text-xs text-destructive hover:bg-destructive/10 px-2 cursor-pointer"
-                        >
-                          <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
-                        </Button>
+                        <div className="flex items-center gap-1.5">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => startEdit(item)}
+                            className={`h-7 text-xs px-2.5 cursor-pointer gap-1.5 ${
+                              editingBlogId === item.id
+                                ? "border-primary text-primary bg-primary/10 font-semibold"
+                                : "text-foreground hover:bg-muted"
+                            }`}
+                          >
+                            <Pencil className="h-3 w-3 text-primary" /> Edit
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              if (window.confirm("Are you sure you want to delete this blog?")) {
+                                deleteMutation.mutate(item.id);
+                              }
+                            }}
+                            disabled={deleteMutation.isPending}
+                            className="h-7 text-xs text-destructive hover:bg-destructive/10 px-2 cursor-pointer"
+                          >
+                            <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>

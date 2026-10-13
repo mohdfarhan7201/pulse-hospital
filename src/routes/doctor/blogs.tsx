@@ -434,6 +434,34 @@ function DoctorBlogsPage() {
                         <Upload className="h-3.5 w-3.5" /> Upload
                       </Button>
                     </div>
+
+                    {imageUrl && (
+                      <div className="relative mt-2 rounded-lg overflow-hidden border bg-muted/30 flex items-center justify-center h-48">
+                        <img
+                          src={imageUrl}
+                          alt="Cover background"
+                          aria-hidden="true"
+                          className="absolute inset-0 w-full h-full object-cover blur-xl opacity-35 scale-110 pointer-events-none"
+                        />
+                        <img
+                          src={imageUrl}
+                          alt="Cover Preview"
+                          className="relative z-10 max-h-full max-w-full object-contain drop-shadow"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => {
+                            setImageUrl("");
+                            if (fileInputRef.current) fileInputRef.current.value = "";
+                          }}
+                          className="absolute top-2 right-2 z-20 h-7 text-xs px-2 shadow-md cursor-pointer"
+                        >
+                          <X className="h-3.5 w-3.5 mr-1" /> Remove
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -619,14 +647,20 @@ function DoctorBlogsPage() {
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center">
                     {/* Thumbnail preview */}
                     {thumbUrl ? (
-                      <div className="sm:w-36 h-28 shrink-0 relative bg-black/10 overflow-hidden">
+                      <div className="sm:w-36 h-28 shrink-0 relative bg-muted/40 overflow-hidden flex items-center justify-center">
+                        <img
+                          src={thumbUrl}
+                          alt=""
+                          aria-hidden="true"
+                          className="absolute inset-0 w-full h-full object-cover blur-md opacity-35 scale-110 pointer-events-none"
+                        />
                         <img
                           src={thumbUrl}
                           alt={item.title}
-                          className="w-full h-full object-cover"
+                          className="relative z-10 w-full h-full object-contain drop-shadow-sm"
                         />
                         {item.videoUrl && (
-                          <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                          <div className="absolute inset-0 z-20 bg-black/30 flex items-center justify-center">
                             <Play className="h-6 w-6 text-white fill-white" />
                           </div>
                         )}

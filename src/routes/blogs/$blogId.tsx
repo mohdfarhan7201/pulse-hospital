@@ -201,8 +201,20 @@ function SingleBlogPage() {
               </div>
             </div>
           ) : blog.imageUrl ? (
-            <div className="overflow-hidden rounded-3xl border border-slate-200 shadow-xl aspect-video w-full bg-slate-100">
-              <img src={blog.imageUrl} alt={blog.title} className="h-full w-full object-cover" />
+            <div className="relative overflow-hidden rounded-3xl border border-slate-200/90 shadow-2xl w-full bg-slate-950 flex items-center justify-center min-h-[300px] max-h-[750px]">
+              {/* Ambient blurred backdrop so portrait images have a seamless modern glow instead of empty bars */}
+              <img
+                src={blog.imageUrl}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-35 scale-110 pointer-events-none"
+                aria-hidden="true"
+              />
+              {/* Full uncropped image, fully visible whether portrait or landscape */}
+              <img
+                src={blog.imageUrl}
+                alt={blog.title}
+                className="relative z-10 max-h-[720px] w-auto max-w-full object-contain mx-auto rounded-2xl shadow-sm"
+              />
             </div>
           ) : null}
 

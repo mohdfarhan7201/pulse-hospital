@@ -270,11 +270,21 @@ function BlogsPage() {
                   }}
                 >
                   {featuredBlog.imageUrl || getYoutubeThumbnail(featuredBlog.videoUrl) ? (
-                    <img
-                      src={featuredBlog.imageUrl || getYoutubeThumbnail(featuredBlog.videoUrl)!}
-                      alt={featuredBlog.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-[0.9] group-hover:brightness-100"
-                    />
+                    <div className="relative w-full h-full flex items-center justify-center bg-slate-950 overflow-hidden">
+                      {/* Ambient blur backdrop for seamless fitting of portrait images */}
+                      <img
+                        src={featuredBlog.imageUrl || getYoutubeThumbnail(featuredBlog.videoUrl)!}
+                        alt=""
+                        className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110 pointer-events-none"
+                        aria-hidden="true"
+                      />
+                      {/* Crisp foreground image: full portrait or landscape without cropping */}
+                      <img
+                        src={featuredBlog.imageUrl || getYoutubeThumbnail(featuredBlog.videoUrl)!}
+                        alt={featuredBlog.title}
+                        className="relative z-10 w-full h-full object-contain group-hover:scale-105 transition-transform duration-700"
+                      />
+                    </div>
                   ) : featuredBlog.videoUrl?.startsWith("/uploads/") || featuredBlog.videoUrl?.startsWith("/api/video/") ? (
                     <video
                       src={featuredBlog.videoUrl}
@@ -400,11 +410,21 @@ function BlogsPage() {
                         }}
                       >
                         {thumb ? (
-                          <img
-                            src={thumb}
-                            alt={blog.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 brightness-95 group-hover:brightness-100"
-                          />
+                          <div className="relative w-full h-full flex items-center justify-center bg-slate-950 overflow-hidden">
+                            {/* Ambient blur backdrop for seamless fitting of portrait images */}
+                            <img
+                              src={thumb}
+                              alt=""
+                              className="absolute inset-0 w-full h-full object-cover blur-xl opacity-40 scale-110 pointer-events-none"
+                              aria-hidden="true"
+                            />
+                            {/* Crisp foreground image: full portrait or landscape without cropping */}
+                            <img
+                              src={thumb}
+                              alt={blog.title}
+                              className="relative z-10 w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+                            />
+                          </div>
                         ) : blog.videoUrl?.startsWith("/uploads/") || blog.videoUrl?.startsWith("/api/video/") ? (
                           <video
                             src={blog.videoUrl}

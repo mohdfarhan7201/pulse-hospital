@@ -18,16 +18,19 @@ import {
   Film,
   Stethoscope,
   ShieldCheck,
+  Instagram,
+  Youtube,
+  ExternalLink,
 } from "lucide-react";
 
 import { listBlogsFn, type BlogRecord } from "@/lib/api";
+import { parseVideoUrl } from "@/lib/video";
 import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/blogs/")({
-  component: BlogsPage,
   head: () => ({
     meta: [
       { title: "Health Blogs & Medical Insights · Pulse Heart Centre" },
@@ -38,33 +41,8 @@ export const Route = createFileRoute("/blogs/")({
       },
     ],
   }),
+  component: BlogsPage,
 });
-
-function getYoutubeThumbnail(url?: string): string | null {
-  if (!url) return null;
-  const ytMatch = url.match(
-    /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/
-  );
-  if (ytMatch && ytMatch[1]) {
-    return `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
-  }
-  return null;
-}
-
-function getEmbedUrl(url?: string): string | null {
-  if (!url) return null;
-  const ytMatch = url.match(
-    /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/
-  );
-  if (ytMatch && ytMatch[1]) {
-    return `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`;
-  }
-  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
-  if (vimeoMatch && vimeoMatch[1]) {
-    return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`;
-  }
-  return null;
-}
 
 function BlogsPage() {
   const [search, setSearch] = useState("");
@@ -97,12 +75,8 @@ function BlogsPage() {
     filteredBlogs.length > 0 && !search && filterType === "all" ? filteredBlogs[0] : null;
   const gridBlogs = featuredBlog ? filteredBlogs.slice(1) : filteredBlogs;
 
-  const modalEmbedUrl = activeModalBlog?.videoUrl ? getEmbedUrl(activeModalBlog.videoUrl) : null;
-  const isModalDirectVideo =
-    activeModalBlog?.videoUrl &&
-    (activeModalBlog.videoUrl.startsWith("/uploads/") ||
-      activeModalBlog.videoUrl.startsWith("/api/video/") ||
-      activeModalBlog.videoUrl.match(/\.(mp4|webm|mov)$/i));
+  const modalVideoInfo = activeModalBlog?.videoUrl ? parseVideoUrl(activeModalBlog.videoUrl) : null;
+  const isModalDirectVideo = modalVideoInfo?.platform === "local";
 
   return (
     <div className="relative min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-primary selection:text-white flex flex-col overflow-x-hidden">
@@ -259,128 +233,188 @@ function BlogsPage() {
           )}
 
           {/* FEATURED SPOTLIGHT BLOG CARD */}
-          {featuredBlog && (
-            <div className="relative group overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200/90 bg-white shadow-luxe transition-all duration-500 hover:shadow-2xl">
-              <div className="grid lg:grid-cols-12 gap-0 items-center">
-                {/* Media Preview Player */}
-                <div
-                  className="lg:col-span-7 relative aspect-video w-full overflow-hidden bg-slate-900 cursor-pointer"
-                  onClick={() => {
-                    if (featuredBlog.videoUrl) setActiveModalBlog(featuredBlog);
-                  }}
-                >
-                  {featuredBlog.imageUrl || getYoutubeThumbnail(featuredBlog.videoUrl) ? (
-                    <div className="relative w-full h-full flex items-center justify-center bg-slate-950 overflow-hidden">
-                      {/* Ambient blur backdrop for seamless fitting of portrait images */}
-                      <img
-                        src={featuredBlog.imageUrl || getYoutubeThumbnail(featuredBlog.videoUrl)!}
-                        alt=""
-                        className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110 pointer-events-none"
-                        aria-hidden="true"
-                      />
-                      {/* Crisp foreground image: full portrait or landscape without cropping */}
-                      <img
-                        src={featuredBlog.imageUrl || getYoutubeThumbnail(featuredBlog.videoUrl)!}
-                        alt={featuredBlog.title}
-                        className="relative z-10 w-full h-full object-contain group-hover:scale-105 transition-transform duration-700"
-                      />
-                    </div>
-                  ) : featuredBlog.videoUrl?.startsWith("/uploads/") || featuredBlog.videoUrl?.startsWith("/api/video/") ? (
-                    <video
-                      src={featuredBlog.videoUrl}
-                      muted
-                      preload="metadata"
-                      className="w-full h-full object-cover brightness-[0.9]"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 via-slate-900 to-black">
-                      <BookOpen className="h-16 w-16 text-white/20" />
-                    </div>
-                  )}
+          {/* FEATURED SPOTLIGHT BLOG CARD */}
+          {featuredBlog && (() => {
+            const featuredVideo = featuredBlog.videoUrl ? parseVideoUrl(featuredBlog.videoUrl) : null;
+            const featuredThumb = featuredBlog.imageUrl || featuredVideo?.thumbnailUrl;
 
-                  {/* Dark Vignette Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            return (
+              <div className="relative group overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200/90 bg-white shadow-luxe transition-all duration-500 hover:shadow-2xl">
+                <div className="grid lg:grid-cols-12 gap-0 items-center">
+                  {/* Media Preview Player */}
+                  <div
+                    className="lg:col-span-7 relative aspect-video w-full overflow-hidden bg-slate-900 cursor-pointer"
+                    onClick={() => {
+                      if (featuredVideo?.externalUrl && (featuredVideo.platform === "youtube" || featuredVideo.platform === "instagram")) {
+                        window.open(featuredVideo.externalUrl, "_blank", "noopener,noreferrer");
+                      } else if (featuredBlog.videoUrl) {
+                        setActiveModalBlog(featuredBlog);
+                      }
+                    }}
+                  >
+                    {featuredThumb ? (
+                      <div className="relative w-full h-full flex items-center justify-center bg-slate-950 overflow-hidden">
+                        {/* Ambient blur backdrop for seamless fitting of portrait images */}
+                        <img
+                          src={featuredThumb}
+                          alt=""
+                          className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110 pointer-events-none"
+                          aria-hidden="true"
+                        />
+                        {/* Crisp foreground image: full portrait or landscape without cropping */}
+                        <img
+                          src={featuredThumb}
+                          alt={featuredBlog.title}
+                          className="relative z-10 w-full h-full object-contain group-hover:scale-105 transition-transform duration-700"
+                        />
+                      </div>
+                    ) : featuredBlog.videoUrl?.startsWith("/uploads/") || featuredBlog.videoUrl?.startsWith("/api/video/") ? (
+                      <video
+                        src={featuredBlog.videoUrl}
+                        muted
+                        preload="metadata"
+                        className="w-full h-full object-cover brightness-[0.9]"
+                      />
+                    ) : (
+                      <div className={`w-full h-full flex items-center justify-center ${
+                        featuredVideo?.platform === "instagram"
+                          ? "bg-gradient-to-tr from-purple-700 via-pink-600 to-amber-500"
+                          : "bg-gradient-to-br from-primary/20 via-slate-900 to-black"
+                      }`}>
+                        {featuredVideo?.platform === "instagram" ? (
+                          <Instagram className="h-20 w-20 text-white/90" />
+                        ) : featuredVideo?.platform === "youtube" ? (
+                          <Youtube className="h-20 w-20 text-red-500" />
+                        ) : (
+                          <BookOpen className="h-16 w-16 text-white/20" />
+                        )}
+                      </div>
+                    )}
 
-                  {/* Top Badges */}
-                  <div className="absolute top-3 left-3 sm:top-5 sm:left-5 flex flex-wrap items-center gap-1.5 sm:gap-2">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/95 backdrop-blur-md px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-bold text-white shadow-md">
-                      <Sparkles className="h-3 w-3" /> Featured Article
-                    </span>
-                    {featuredBlog.videoUrl && (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-black/75 backdrop-blur-md px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-semibold text-white border border-white/20">
-                        <Film className="h-3 w-3 text-red-400" /> Video Included
+                    {/* Dark Vignette Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                    {/* Top Badges */}
+                    <div className="absolute top-3 left-3 sm:top-5 sm:left-5 flex flex-wrap items-center gap-1.5 sm:gap-2">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/95 backdrop-blur-md px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-bold text-white shadow-md">
+                        <Sparkles className="h-3 w-3" /> Featured Article
                       </span>
+                      {featuredVideo?.platform === "youtube" ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-red-600/95 backdrop-blur-md px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-semibold text-white shadow-md">
+                          <Youtube className="h-3.5 w-3.5" /> YouTube Video
+                        </span>
+                      ) : featuredVideo?.platform === "instagram" ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 backdrop-blur-md px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-semibold text-white border border-white/20 shadow-md">
+                          <Instagram className="h-3.5 w-3.5" /> Instagram Reel
+                        </span>
+                      ) : featuredBlog.videoUrl ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-black/75 backdrop-blur-md px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-semibold text-white border border-white/20">
+                          <Film className="h-3 w-3 text-red-400" /> Video Included
+                        </span>
+                      ) : null}
+                    </div>
+
+                    {/* Large Floating Play Button (if video) */}
+                    {featuredBlog.videoUrl && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        {featuredVideo?.platform === "instagram" ? (
+                          <button
+                            type="button"
+                            aria-label="Open Instagram Reel"
+                            className="group/play flex h-14 w-14 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-gradient-to-tr from-purple-600 via-pink-600 to-amber-500 text-white shadow-2xl backdrop-blur-md transition-all duration-300 group-hover/play:scale-110 cursor-pointer"
+                          >
+                            <Instagram className="h-7 w-7 sm:h-9 sm:w-9 text-white" />
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            aria-label="Play video"
+                            className="group/play flex h-14 w-14 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-red-600/90 text-white shadow-2xl backdrop-blur-md transition-all duration-300 group-hover/play:scale-110 group-hover/play:bg-red-600 cursor-pointer"
+                          >
+                            <Play className="h-6 w-6 sm:h-8 sm:w-8 translate-x-0.5 fill-white" />
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
 
-                  {/* Large Floating Play Button (if video) */}
-                  {featuredBlog.videoUrl && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <button
-                        type="button"
-                        aria-label="Play video"
-                        className="group/play flex h-14 w-14 sm:h-20 sm:w-20 items-center justify-center rounded-full bg-red-600/90 text-white shadow-2xl backdrop-blur-md transition-all duration-300 group-hover/play:scale-110 group-hover/play:bg-red-600 cursor-pointer"
+                  {/* Info Column */}
+                  <div className="lg:col-span-5 p-5 sm:p-8 lg:p-10 flex flex-col justify-between space-y-4 sm:space-y-6">
+                    <div className="space-y-2 sm:space-y-3">
+                      <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+                        <Calendar className="h-3.5 w-3.5 text-primary" />
+                        <span>
+                          {new Date(featuredBlog.createdAt).toLocaleDateString("en-IN", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </span>
+                        <span>•</span>
+                        <span className="text-slate-700 font-semibold">Dr. Prakash Chand Shahi</span>
+                      </div>
+
+                      <h2 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-slate-900 group-hover:text-primary transition-colors leading-snug">
+                        <Link to="/blogs/$blogId" params={{ blogId: featuredBlog.id }}>
+                          {featuredBlog.title}
+                        </Link>
+                      </h2>
+
+                      <p className="text-xs sm:text-sm text-slate-600 line-clamp-3 leading-relaxed">
+                        {featuredBlog.content ||
+                          "Click to read this comprehensive clinical guide and health discussion by our cardiology team."}
+                      </p>
+                    </div>
+
+                    {/* Actions & Button */}
+                    <div className="flex flex-wrap items-center gap-3 pt-2">
+                      <Link
+                        to="/blogs/$blogId"
+                        params={{ blogId: featuredBlog.id }}
+                        className="inline-flex items-center gap-2 rounded-xl bg-slate-900 hover:bg-primary px-4 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-white transition-all shadow-md cursor-pointer"
                       >
-                        <Play className="h-6 w-6 sm:h-8 sm:w-8 translate-x-0.5 fill-white" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Info Column */}
-                <div className="lg:col-span-5 p-5 sm:p-8 lg:p-10 flex flex-col justify-between space-y-4 sm:space-y-6">
-                  <div className="space-y-2 sm:space-y-3">
-                    <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-                      <Calendar className="h-3.5 w-3.5 text-primary" />
-                      <span>
-                        {new Date(featuredBlog.createdAt).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </span>
-                      <span>•</span>
-                      <span className="text-slate-700 font-semibold">Dr. Prakash Chand Shahi</span>
-                    </div>
-
-                    <h2 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight text-slate-900 group-hover:text-primary transition-colors leading-snug">
-                      <Link to="/blogs/$blogId" params={{ blogId: featuredBlog.id }}>
-                        {featuredBlog.title}
+                        <span>Read Full Article</span>
+                        <ArrowRight className="h-4 w-4" />
                       </Link>
-                    </h2>
 
-                    <p className="text-xs sm:text-sm text-slate-600 line-clamp-3 leading-relaxed">
-                      {featuredBlog.content ||
-                        "Click to read this comprehensive clinical guide and health discussion by our cardiology team."}
-                    </p>
-                  </div>
-
-                  {/* Actions & Button */}
-                  <div className="flex flex-wrap items-center gap-3 pt-2">
-                    <Link
-                      to="/blogs/$blogId"
-                      params={{ blogId: featuredBlog.id }}
-                      className="inline-flex items-center gap-2 rounded-xl bg-slate-900 hover:bg-primary px-4 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-white transition-all shadow-md cursor-pointer"
-                    >
-                      <span>Read Full Article</span>
-                      <ArrowRight className="h-4 w-4" />
-                    </Link>
-
-                    {featuredBlog.videoUrl && (
-                      <button
-                        type="button"
-                        onClick={() => setActiveModalBlog(featuredBlog)}
-                        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700 transition-all cursor-pointer shadow-sm"
-                      >
-                        <Play className="h-3.5 w-3.5 text-red-600 fill-red-600" />
-                        <span>Watch Video</span>
-                      </button>
-                    )}
+                      {featuredVideo?.platform === "youtube" && featuredVideo.externalUrl ? (
+                        <a
+                          href={featuredVideo.externalUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-white transition-all shadow-md cursor-pointer"
+                        >
+                          <Youtube className="h-4 w-4" />
+                          <span>Watch on YouTube</span>
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      ) : featuredVideo?.platform === "instagram" && featuredVideo.externalUrl ? (
+                        <a
+                          href={featuredVideo.externalUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 hover:opacity-95 px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-white transition-all shadow-md cursor-pointer"
+                        >
+                          <Instagram className="h-4 w-4" />
+                          <span>Watch on Instagram</span>
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      ) : featuredBlog.videoUrl ? (
+                        <button
+                          type="button"
+                          onClick={() => setActiveModalBlog(featuredBlog)}
+                          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-slate-700 transition-all cursor-pointer shadow-sm"
+                        >
+                          <Play className="h-3.5 w-3.5 text-primary fill-primary" />
+                          <span>Watch Video</span>
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* GRID OF BLOGS */}
           {gridBlogs.length > 0 && (
@@ -394,7 +428,8 @@ function BlogsPage() {
 
               <div className="grid gap-6 sm:gap-8 sm:grid-cols-2 lg:grid-cols-3">
                 {gridBlogs.map((blog) => {
-                  const thumb = blog.imageUrl || getYoutubeThumbnail(blog.videoUrl);
+                  const videoInfo = parseVideoUrl(blog.videoUrl);
+                  const thumb = blog.imageUrl || videoInfo.thumbnailUrl;
                   const hasVideo = !!blog.videoUrl;
 
                   return (
@@ -406,7 +441,11 @@ function BlogsPage() {
                       <div
                         className="relative aspect-video w-full bg-slate-900 overflow-hidden cursor-pointer"
                         onClick={() => {
-                          if (hasVideo) setActiveModalBlog(blog);
+                          if (videoInfo.externalUrl && (videoInfo.platform === "youtube" || videoInfo.platform === "instagram")) {
+                            window.open(videoInfo.externalUrl, "_blank", "noopener,noreferrer");
+                          } else if (hasVideo) {
+                            setActiveModalBlog(blog);
+                          }
                         }}
                       >
                         {thumb ? (
@@ -433,26 +472,52 @@ function BlogsPage() {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-slate-900">
-                            <BookOpen className="h-10 w-10 text-white/30" />
+                          <div
+                            className={`w-full h-full flex items-center justify-center ${
+                              videoInfo.platform === "instagram"
+                                ? "bg-gradient-to-tr from-purple-700 via-pink-600 to-amber-500"
+                                : "bg-gradient-to-br from-primary/10 to-slate-900"
+                            }`}
+                          >
+                            {videoInfo.platform === "instagram" ? (
+                              <Instagram className="h-12 w-12 text-white/90" />
+                            ) : videoInfo.platform === "youtube" ? (
+                              <Youtube className="h-12 w-12 text-red-500" />
+                            ) : (
+                              <BookOpen className="h-10 w-10 text-white/30" />
+                            )}
                           </div>
                         )}
 
                         {/* Top Badges */}
                         <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 flex items-center gap-1.5">
-                          {hasVideo && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-red-600/90 backdrop-blur-md px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+                          {videoInfo.platform === "youtube" ? (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-red-600/95 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-bold text-white shadow-sm">
+                              <Youtube className="h-3 w-3" /> YouTube Video
+                            </span>
+                          ) : videoInfo.platform === "instagram" ? (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-purple-600 to-pink-500 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-bold text-white shadow-sm border border-white/20">
+                              <Instagram className="h-3 w-3" /> Instagram Reel
+                            </span>
+                          ) : hasVideo ? (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-black/80 backdrop-blur-md px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
                               <Play className="h-2.5 w-2.5 fill-white" /> Video
                             </span>
-                          )}
+                          ) : null}
                         </div>
 
                         {/* Centered Play Button */}
                         {hasVideo && (
                           <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-90 group-hover:opacity-100 transition-opacity">
-                            <div className="flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/95 text-red-600 shadow-lg backdrop-blur-sm group-hover:scale-110 transition-transform">
-                              <Play className="h-5 w-5 translate-x-0.5 fill-red-600" />
-                            </div>
+                            {videoInfo.platform === "instagram" ? (
+                              <div className="flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-gradient-to-tr from-purple-600 via-pink-600 to-amber-500 text-white shadow-lg backdrop-blur-sm group-hover:scale-110 transition-transform">
+                                <Instagram className="h-5 w-5" />
+                              </div>
+                            ) : (
+                              <div className="flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-white/95 text-red-600 shadow-lg backdrop-blur-sm group-hover:scale-110 transition-transform">
+                                <Play className="h-5 w-5 translate-x-0.5 fill-red-600" />
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
@@ -482,7 +547,7 @@ function BlogsPage() {
                           </p>
                         </div>
 
-                        {/* Read link */}
+                        {/* Read link & Direct Watch */}
                         <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                           <Link
                             to="/blogs/$blogId"
@@ -493,13 +558,35 @@ function BlogsPage() {
                             <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                           </Link>
 
-                          {hasVideo && (
+                          {videoInfo.platform === "youtube" && videoInfo.externalUrl && (
+                            <a
+                              href={videoInfo.externalUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[11px] font-bold text-red-600 hover:text-red-700 flex items-center gap-1 cursor-pointer transition-colors"
+                            >
+                              <Youtube className="h-3.5 w-3.5" /> Watch on YouTube <ExternalLink className="h-2.5 w-2.5" />
+                            </a>
+                          )}
+
+                          {videoInfo.platform === "instagram" && videoInfo.externalUrl && (
+                            <a
+                              href={videoInfo.externalUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[11px] font-bold text-pink-600 hover:text-pink-700 flex items-center gap-1 cursor-pointer transition-colors"
+                            >
+                              <Instagram className="h-3.5 w-3.5" /> Watch on Instagram <ExternalLink className="h-2.5 w-2.5" />
+                            </a>
+                          )}
+
+                          {videoInfo.platform === "local" && (
                             <button
                               type="button"
                               onClick={() => setActiveModalBlog(blog)}
                               className="text-[11px] font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1 cursor-pointer"
                             >
-                              <Play className="h-2.5 w-2.5 fill-current" /> Quick Play
+                              <Play className="h-2.5 w-2.5 fill-current" /> Play Video
                             </button>
                           )}
                         </div>
@@ -531,20 +618,42 @@ function BlogsPage() {
                 </h3>
                 <p className="text-xs text-slate-400">Dr. Prakash Chand Shahi · Pulse Heart Centre</p>
               </div>
-              <button
-                type="button"
-                onClick={() => setActiveModalBlog(null)}
-                className="rounded-full bg-white/10 p-2 text-white hover:bg-white/20 transition-all cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                {modalVideoInfo?.externalUrl && (modalVideoInfo.platform === "youtube" || modalVideoInfo.platform === "instagram") && (
+                  <a
+                    href={modalVideoInfo.externalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-white transition-opacity ${
+                      modalVideoInfo.platform === "youtube"
+                        ? "bg-red-600 hover:bg-red-700"
+                        : "bg-gradient-to-r from-purple-600 via-pink-600 to-amber-500 hover:opacity-90"
+                    }`}
+                  >
+                    {modalVideoInfo.platform === "youtube" ? <Youtube className="h-3.5 w-3.5" /> : <Instagram className="h-3.5 w-3.5" />}
+                    <span>Open in {modalVideoInfo.label}</span>
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setActiveModalBlog(null)}
+                  className="rounded-full bg-white/10 p-2 text-white hover:bg-white/20 transition-all cursor-pointer"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
             </div>
 
             {/* Video Player */}
-            <div className="relative aspect-video w-full bg-black">
-              {modalEmbedUrl ? (
+            <div
+              className={`relative w-full bg-black flex items-center justify-center ${
+                modalVideoInfo?.platform === "instagram" ? "aspect-[9/16] max-h-[75vh] max-w-sm mx-auto" : "aspect-video"
+              }`}
+            >
+              {modalVideoInfo?.embedUrl ? (
                 <iframe
-                  src={modalEmbedUrl}
+                  src={modalVideoInfo.embedUrl}
                   title={activeModalBlog.title}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
@@ -579,7 +688,7 @@ function BlogsPage() {
               <button
                 type="button"
                 onClick={() => setActiveModalBlog(null)}
-                className="hover:text-white transition-colors"
+                className="hover:text-white transition-colors cursor-pointer"
               >
                 Close
               </button>

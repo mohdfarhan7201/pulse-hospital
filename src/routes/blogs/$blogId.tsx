@@ -13,6 +13,9 @@ import {
   CheckCircle2,
   Award,
   Pencil,
+  Youtube,
+  Instagram,
+  ExternalLink,
 } from "lucide-react";
 
 import { getBlogFn, getHospitalSettingsFn } from "@/lib/api";
@@ -20,6 +23,7 @@ import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
 import { Button } from "@/components/ui/button";
 import { AppointmentModal } from "@/components/site/AppointmentModal";
+import { parseVideoUrl } from "@/lib/video";
 
 export const Route = createFileRoute("/blogs/$blogId")({
   component: SingleBlogPage,
@@ -70,21 +74,8 @@ function SingleBlogPage() {
     );
   }
 
-  // Extract YouTube video ID
-  let embedVideoUrl: string | null = null;
-  if (blog.videoUrl) {
-    const ytMatch = blog.videoUrl.match(
-      /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/
-    );
-    if (ytMatch && ytMatch[1]) {
-      embedVideoUrl = `https://www.youtube.com/embed/${ytMatch[1]}`;
-    } else {
-      const vimeoMatch = blog.videoUrl.match(/vimeo\.com\/(\d+)/);
-      if (vimeoMatch && vimeoMatch[1]) {
-        embedVideoUrl = `https://player.vimeo.com/video/${vimeoMatch[1]}`;
-      }
-    }
-  }
+  // Extract video info (supports YouTube, Instagram Reels/Posts, Vimeo, direct)
+  const videoInfo = parseVideoUrl(blog.videoUrl);
 
   const handleShare = () => {
     if (navigator.share) {
@@ -164,7 +155,37 @@ function SingleBlogPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                {videoInfo?.externalUrl && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                    className={`rounded-full gap-1.5 text-xs font-semibold shadow-sm transition-all ${
+                      videoInfo.platform === "youtube"
+                        ? "border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
+                        : videoInfo.platform === "instagram"
+                        ? "border-pink-200 bg-gradient-to-r from-purple-50 via-pink-50 to-amber-50 text-pink-600 hover:from-purple-100 hover:to-pink-100"
+                        : "border-slate-200 hover:bg-slate-50 text-slate-700"
+                    }`}
+                  >
+                    <a
+                      href={videoInfo.externalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {videoInfo.platform === "youtube" ? (
+                        <Youtube className="h-3.5 w-3.5 fill-current" />
+                      ) : videoInfo.platform === "instagram" ? (
+                        <Instagram className="h-3.5 w-3.5 text-pink-600" />
+                      ) : (
+                        <Film className="h-3.5 w-3.5" />
+                      )}
+                      Watch on {videoInfo.label}
+                      <ExternalLink className="h-3 w-3 opacity-60" />
+                    </a>
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   size="sm"
@@ -188,17 +209,48 @@ function SingleBlogPage() {
           </header>
 
           {/* Video Player or Cover Image */}
-          {embedVideoUrl ? (
-            <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-black shadow-2xl">
-              <div className="aspect-video w-full">
+          {videoInfo?.embedUrl ? (
+            <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-slate-950 shadow-2xl">
+              <div
+                className={
+                  videoInfo.platform === "instagram"
+                    ? "aspect-[9/16] max-w-md mx-auto w-full bg-black flex items-center justify-center min-h-[500px]"
+                    : "aspect-video w-full"
+                }
+              >
                 <iframe
-                  src={embedVideoUrl}
+                  src={videoInfo.embedUrl}
                   title={blog.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   allowFullScreen
                   className="h-full w-full border-0"
                 />
               </div>
+              {videoInfo.externalUrl && (
+                <div className="bg-slate-900 border-t border-slate-800 px-5 py-3.5 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-300">
+                  <span className="flex items-center gap-2">
+                    {videoInfo.platform === "youtube" ? (
+                      <Youtube className="h-4 w-4 text-red-500 fill-current" />
+                    ) : videoInfo.platform === "instagram" ? (
+                      <Instagram className="h-4 w-4 text-pink-400" />
+                    ) : (
+                      <Film className="h-4 w-4 text-cyan-400" />
+                    )}
+                    <span>
+                      Playing from <strong>{videoInfo.label}</strong>
+                    </span>
+                  </span>
+                  <a
+                    href={videoInfo.externalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-semibold transition"
+                  >
+                    Open on {videoInfo.label}
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                </div>
+              )}
             </div>
           ) : isDirectVideo ? (
             <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-black shadow-2xl">

@@ -19,9 +19,12 @@ import {
   CheckCircle2,
   Pencil,
   Check,
+  Instagram,
+  Youtube,
 } from "lucide-react";
 
 import { listBlogsFn, createBlogFn, updateBlogFn, deleteBlogFn, type BlogRecord } from "@/lib/api";
+import { parseVideoUrl } from "@/lib/video";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -38,21 +41,6 @@ export const Route = createFileRoute("/doctor/blogs")({
   }),
   component: DoctorBlogsPage,
 });
-
-function getEmbedUrl(url?: string): string | null {
-  if (!url) return null;
-  const ytMatch = url.match(
-    /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/
-  );
-  if (ytMatch && ytMatch[1]) {
-    return `https://www.youtube.com/embed/${ytMatch[1]}`;
-  }
-  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
-  if (vimeoMatch && vimeoMatch[1]) {
-    return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
-  }
-  return null;
-}
 
 const captureThumbnailFromVideo = (videoFile: File): Promise<string> => {
   return new Promise((resolve) => {
@@ -397,7 +385,7 @@ function DoctorBlogsPage() {
     }
   };
 
-  const videoPreviewEmbed = getEmbedUrl(videoUrl);
+  const videoInfo = parseVideoUrl(videoUrl);
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto p-2 sm:p-4">
@@ -504,7 +492,7 @@ function DoctorBlogsPage() {
                           : "bg-muted/40 text-muted-foreground hover:bg-muted"
                       }`}
                     >
-                      <Link2 className="h-3.5 w-3.5" /> Video Link
+                      <Link2 className="h-3.5 w-3.5" /> Video Link (YT / Insta)
                     </button>
                     <button
                       type="button"
@@ -581,25 +569,66 @@ function DoctorBlogsPage() {
                   </div>
                 )}
 
-                {/* Tab: Video Link */}
+                {/* Tab: Video Link (YouTube / Instagram / Vimeo) */}
                 {activeMediaTab === "link-video" && (
                   <div className="space-y-3 p-4 rounded-xl border bg-muted/20">
-                    <Label htmlFor="video-url" className="text-xs font-semibold">
-                      YouTube / Vimeo Video URL
-                    </Label>
+                    <div className="flex flex-wrap items-center justify-between gap-1.5">
+                      <Label htmlFor="video-url" className="text-xs font-semibold">
+                        YouTube / Instagram / Vimeo Video URL
+                      </Label>
+                      {videoInfo.platform === "youtube" && (
+                        <span className="text-[10px] bg-red-500/10 text-red-600 font-bold px-2 py-0.5 rounded flex items-center gap-1 border border-red-200/50">
+                          <Youtube className="h-3 w-3" /> YouTube Video Detected
+                        </span>
+                      )}
+                      {videoInfo.platform === "instagram" && (
+                        <span className="text-[10px] bg-gradient-to-r from-purple-500/15 to-pink-500/15 text-pink-600 font-bold px-2 py-0.5 rounded flex items-center gap-1 border border-pink-200/60">
+                          <Instagram className="h-3 w-3" /> Instagram Reel/Post Detected
+                        </span>
+                      )}
+                    </div>
+
                     <Input
                       id="video-url"
-                      placeholder="https://www.youtube.com/watch?v=..."
+                      placeholder="https://www.youtube.com/watch?v=... or https://www.instagram.com/reel/..."
                       value={videoUrl}
                       onChange={(e) => setVideoUrl(e.target.value)}
                       className="h-9 text-xs"
                     />
-                    {videoPreviewEmbed && (
-                      <div className="mt-2 aspect-video w-full rounded-lg overflow-hidden border bg-black shadow-sm">
+
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      💡 <strong>Supported:</strong> YouTube videos, YouTube Shorts, Instagram Reels, Instagram video posts, and Vimeo links.
+                    </p>
+
+                    {videoInfo.externalUrl && (
+                      <div className="flex items-center justify-between text-xs bg-muted/60 p-2.5 rounded-lg border">
+                        <span className="text-muted-foreground truncate max-w-[240px] font-mono text-[11px]">
+                          {videoInfo.externalUrl}
+                        </span>
+                        <a
+                          href={videoInfo.externalUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 font-semibold text-primary hover:underline text-xs"
+                        >
+                          Test on {videoInfo.label || "Web"} <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </div>
+                    )}
+
+                    {videoInfo.embedUrl && (
+                      <div
+                        className={`mt-2 w-full rounded-lg overflow-hidden border bg-black shadow-sm ${
+                          videoInfo.platform === "instagram"
+                            ? "max-w-xs mx-auto aspect-[9/16] max-h-[460px]"
+                            : "aspect-video"
+                        }`}
+                      >
                         <iframe
-                          src={videoPreviewEmbed}
+                          src={videoInfo.embedUrl}
                           title="Preview"
                           className="w-full h-full border-0"
+                          allowFullScreen
                         />
                       </div>
                     )}
@@ -784,13 +813,9 @@ function DoctorBlogsPage() {
 
           <div className="space-y-3 overflow-y-auto max-h-[850px] pr-1">
             {blogs?.map((item: BlogRecord) => {
-              const isLocalVideo = item.videoUrl?.startsWith("/uploads/");
-              const ytMatch = item.videoUrl?.match(
-                /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/
-              );
-              const thumbUrl = ytMatch && ytMatch[1]
-                ? `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`
-                : item.imageUrl;
+              const itemVideo = parseVideoUrl(item.videoUrl);
+              const isLocalVideo = itemVideo.platform === "local";
+              const thumbUrl = item.imageUrl || itemVideo.thumbnailUrl;
 
               return (
                 <Card
@@ -823,10 +848,20 @@ function DoctorBlogsPage() {
                         )}
                       </div>
                     ) : item.videoUrl ? (
-                      <div className="sm:w-36 h-28 shrink-0 bg-black/80 flex items-center justify-center text-white relative">
-                        <Play className="h-8 w-8 text-primary fill-primary" />
+                      <div className={`sm:w-36 h-28 shrink-0 flex items-center justify-center text-white relative ${
+                        itemVideo.platform === "instagram"
+                          ? "bg-gradient-to-tr from-purple-700 via-pink-600 to-amber-500"
+                          : "bg-black/80"
+                      }`}>
+                        {itemVideo.platform === "instagram" ? (
+                          <Instagram className="h-8 w-8 text-white" />
+                        ) : itemVideo.platform === "youtube" ? (
+                          <Youtube className="h-8 w-8 text-red-500" />
+                        ) : (
+                          <Play className="h-8 w-8 text-primary fill-primary" />
+                        )}
                         <span className="absolute bottom-1 right-1 text-[9px] bg-black/80 text-white px-1.5 py-0.5 rounded font-mono">
-                          VIDEO
+                          {itemVideo.label.toUpperCase() || "VIDEO"}
                         </span>
                       </div>
                     ) : (
@@ -847,8 +882,24 @@ function DoctorBlogsPage() {
                             })}
                           </span>
                           {item.videoUrl && (
-                            <span className="text-[10px] bg-blue-500/10 text-blue-600 font-semibold px-2 py-0.5 rounded">
-                              {isLocalVideo ? "Uploaded Video" : "Video"}
+                            <span
+                              className={`text-[10px] font-semibold px-2 py-0.5 rounded flex items-center gap-1 ${
+                                itemVideo.platform === "youtube"
+                                  ? "bg-red-500/10 text-red-600"
+                                  : itemVideo.platform === "instagram"
+                                  ? "bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-pink-600 border border-pink-200/50"
+                                  : "bg-blue-500/10 text-blue-600"
+                              }`}
+                            >
+                              {itemVideo.platform === "youtube" && <Youtube className="h-3 w-3" />}
+                              {itemVideo.platform === "instagram" && <Instagram className="h-3 w-3" />}
+                              {itemVideo.platform === "youtube"
+                                ? "YouTube"
+                                : itemVideo.platform === "instagram"
+                                ? "Instagram"
+                                : isLocalVideo
+                                ? "Uploaded Video"
+                                : "Video"}
                             </span>
                           )}
                         </div>
@@ -866,14 +917,31 @@ function DoctorBlogsPage() {
 
                       {/* Actions */}
                       <div className="flex items-center justify-between pt-3 mt-2 border-t text-xs">
-                        <Link
-                          to="/blogs/$blogId"
-                          params={{ blogId: item.id }}
-                          target="_blank"
-                          className="text-primary hover:underline font-medium inline-flex items-center gap-1"
-                        >
-                          View Live <ExternalLink className="h-3 w-3" />
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <Link
+                            to="/blogs/$blogId"
+                            params={{ blogId: item.id }}
+                            target="_blank"
+                            className="text-primary hover:underline font-medium inline-flex items-center gap-1"
+                          >
+                            View Live <ExternalLink className="h-3 w-3" />
+                          </Link>
+
+                          {itemVideo.externalUrl && (itemVideo.platform === "youtube" || itemVideo.platform === "instagram") && (
+                            <a
+                              href={itemVideo.externalUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`font-semibold inline-flex items-center gap-1 hover:underline text-xs ${
+                                itemVideo.platform === "youtube" ? "text-red-600" : "text-pink-600"
+                              }`}
+                            >
+                              {itemVideo.platform === "youtube" && <Youtube className="h-3 w-3" />}
+                              {itemVideo.platform === "instagram" && <Instagram className="h-3 w-3" />}
+                              Open <ExternalLink className="h-2.5 w-2.5" />
+                            </a>
+                          )}
+                        </div>
 
                         <div className="flex items-center gap-1.5">
                           <Button
